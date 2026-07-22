@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>M4S · Gestion des repas</title>
+
+<!-- ============================================================
+     M4S — Gestion des repas de la MAS 4 Saisons
+     Fichier unique. Aucune installation. Se dépose tel quel sur
+     GitHub Pages. Se connecte à Supabase (base + connexion).
+     ============================================================ -->
+
+<!-- >>> CONFIGURATION : tes 2 infos Supabase <<< -->
+<script>
+  const M4S_SUPABASE_URL = "https://fbuernmjzqytyfltbktw.supabase.co";
+  const M4S_SUPABASE_KEY = "sb_publishable_vFG1nptITUwnq44GwJe-1w_eyFYza1T";
+</script>
+
+<style>
+  :root{
+    --bg:#F5F6F1; --surface:#FFFFFF; --surface-2:#FBFCF9;
+    --ink:#22302A; --ink-soft:#5C6B60; --line:#E4E7DE;
+    --green:#3E6B4F; --green-dark:#2C4E39; --green-soft:#E4EFE7;
+    --amber:#C77E24; --amber-soft:#FBEEDA;
+    --danger:#B4492F; --danger-soft:#F7E4DE;
+    --radius:14px; --shadow:0 1px 2px rgba(34,48,42,.06),0 4px 14px rgba(34,48,42,.05);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit;cursor:pointer}
+  .hidden{display:none !important}
+
+  /* ---------- Connexion ---------- */
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .login-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:20px;
+    box-shadow:var(--shadow);padding:36px 32px;width:100%;max-width:380px;text-align:center;
+  }
+  .brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px}
+  .brand-mark{width:40px;height:40px;border-radius:12px;background:var(--green);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;letter-spacing:.5px}
+  .brand h1{font-size:22px;margin:0;color:var(--green-dark)}
+  .login-card p.sub{color:var(--ink-soft);font-size:14px;margin:2px 0 26px}
+  .field{text-align:left;margin-bottom:14px}
+  .field label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:6px}
+  input[type=email],input[type=password]{
+    width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;
+    font-size:16px;background:var(--surface-2);color:var(--ink);
+  }
+  input:focus{outline:2px solid var(--green);outline-offset:1px;border-color:var(--green)}
+  .btn{
+    width:100%;padding:13px;border:none;border-radius:10px;background:var(--green);
+    color:#fff;font-size:16px;font-weight:600;transition:background .15s;
+  }
+  .btn:hover{background:var(--green-dark)}
+  .btn:disabled{opacity:.6;cursor:default}
+  .msg{font-size:13px;margin-top:14px;min-height:18px}
+  .msg.err{color:var(--danger)}
+
+  /* ---------- En-tête appli ---------- */
+  header.app{
+    background:var(--green);color:#fff;padding:12px 18px;
+    display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;
+  }
+  header.app .brand h1{color:#fff;font-size:18px}
+  header.app .brand-mark{background:rgba(255,255,255,.16)}
+  .user{display:flex;align-items:center;gap:12px;font-size:13px}
+  .user .who{opacity:.9;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .logout{background:rgba(255,255,255,.14);border:none;color:#fff;padding:7px 12px;border-radius:8px;font-size:13px}
+  .logout:hover{background:rgba(255,255,255,.24)}
+
+  /* ---------- Barres de sélection ---------- */
+  .controls{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:57px;z-index:15}
+  .controls-inner{max-width:860px;margin:0 auto;padding:12px 16px 14px}
+  .week-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .week-row label{font-size:13px;color:var(--ink-soft)}
+  select.week{
+    padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);
+    font-size:15px;color:var(--ink);font-weight:600;
+  }
+  .days{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+  .day{
+    flex:0 0 auto;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-soft);
+    padding:8px 14px;border-radius:999px;font-size:14px;font-weight:600;white-space:nowrap;transition:.12s;
+  }
+  .day.active{background:var(--green);color:#fff;border-color:var(--green)}
+  .service-toggle{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px;margin-top:12px}
+  .service-toggle button{border:none;background:transparent;color:var(--ink-soft);padding:7px 20px;border-radius:999px;font-size:14px;font-weight:600}
+  .service-toggle button.active{background:var(--amber);color:#fff}
+
+  /* ---------- Liste ---------- */
+  main{max-width:860px;margin:0 auto;padding:16px 16px 120px}
+  .group-title{font-size:13px;font-weight:700;color:var(--green-dark);text-transform:uppercase;
+    letter-spacing:.6px;margin:22px 4px 10px}
+  .group-title:first-child{margin-top:4px}
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);
+    border-radius:var(--radius);padding:12px 14px;margin-bottom:9px;display:flex;align-items:center;
+    gap:12px;box-shadow:var(--shadow);transition:.12s;
+  }
+  .card .name{flex:1;min-width:0}
+  .card .name b{font-size:15px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-top:3px}
+  .badge.normal{background:var(--green-soft);color:var(--green-dark)}
+  .badge.mixe{background:var(--amber-soft);color:var(--amber)}
+  select.meal{
+    flex:0 0 auto;max-width:190px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;
+    background:var(--surface-2);font-size:14px;color:var(--ink);font-weight:600;
+  }
+  .card.special{border-left-color:var(--amber);background:#fffdf8}
+  .card.absent{border-left-color:var(--danger);background:#fdf4f1;opacity:.72}
+  .card.absent .name b{text-decoration:line-through;text-decoration-color:var(--danger)}
+
+  /* ---------- Totaux (pied fixe) ---------- */
+  .totals{
+    position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line);
+    box-shadow:0 -4px 14px rgba(34,48,42,.06);z-index:18;
+  }
+  .totals-inner{max-width:860px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:18px}
+  .totals .big{display:flex;align-items:baseline;gap:8px}
+  .totals .big .n{font-size:26px;font-weight:800;color:var(--green-dark);font-variant-numeric:tabular-nums;transition:.15s}
+  .totals .big .lbl{font-size:13px;color:var(--ink-soft)}
+  .totals .split{display:flex;gap:14px;margin-left:auto;font-size:13px;color:var(--ink-soft)}
+  .totals .split b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .totals .split .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px}
+  .dot.normal{background:var(--green)} .dot.mixe{background:var(--amber)}
+
+  /* ---------- Divers ---------- */
+  .empty{text-align:center;color:var(--ink-soft);padding:50px 20px;font-size:15px}
+  #offline{background:var(--amber-soft);color:var(--amber);text-align:center;font-size:13px;
+    font-weight:600;padding:6px}
+  .toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;
+    opacity:0;pointer-events:none;transition:.25s;z-index:40;max-width:90%;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.err{background:var(--danger)}
+  #loader{min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:15px}
+  @media (max-width:520px){
+    .totals .split{flex-direction:column;gap:2px}
+    select.meal{max-width:150px}
+  }
+</style>
+</head>
+<body>
+
+<!-- Chargement initial -->
+<div id="loader">Chargement de M4S…</div>
+
+<!-- ÉCRAN DE CONNEXION -->
+<div id="login" class="hidden">
+  <div class="login-card">
+    <div class="brand"><span class="brand-mark">M4S</span><h1>M4S</h1></div>
+    <p class="sub">Gestion des repas · MAS 4 Saisons</p>
+    <div class="field">
+      <label for="email">Adresse email</label>
+      <input type="email" id="email" autocomplete="username" placeholder="prenom@mas4saisons.fr">
+    </div>
+    <div class="field">
+      <label for="password">Mot de passe</label>
+      <input type="password" id="password" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn" id="loginBtn">Se connecter</button>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+</div>
+
+<!-- APPLICATION -->
+<div id="app" class="hidden">
+  <div id="offline" class="hidden">Hors ligne — données affichées depuis le cache</div>
+  <header class="app">
+    <div class="brand"><span class="brand-mark">M4S</span><h1>M4S</h1></div>
+    <div class="user">
+      <span class="who" id="who"></span>
+      <button class="logout" id="logoutBtn">Se déconnecter</button>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="controls-inner">
+      <div class="week-row">
+        <label for="weekSel">Semaine</label>
+        <select class="week" id="weekSel"></select>
+      </div>
+      <div class="days" id="days"></div>
+      <div class="service-toggle" id="serviceToggle">
+        <button data-s="midi" class="active">Midi</button>
+        <button data-s="soir">Soir</button>
+      </div>
+    </div>
+  </div>
+
+  <main id="list"></main>
+
+  <div class="totals">
+    <div class="totals-inner">
+      <div class="big"><span class="n" id="tTotal">0</span><span class="lbl">repas prévus</span></div>
+      <div class="split">
+        <span><span class="dot normal"></span>Normaux <b id="tNormal">0</b></span>
+        <span><span class="dot mixe"></span>Mixés <b id="tMixe">0</b></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Librairie Supabase (connexion + base) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   M4S — logique de l'application
+   ============================================================ */
+
+const client = window.supabase.createClient(M4S_SUPABASE_URL, M4S_SUPABASE_KEY);
+
+const JOURS = [
+  {code:"lundi",court:"Lun"},{code:"mardi",court:"Mar"},{code:"mercredi",court:"Mer"},
+  {code:"jeudi",court:"Jeu"},{code:"vendredi",court:"Ven"},{code:"samedi",court:"Sam"},
+  {code:"dimanche",court:"Dim"}
+];
+
+const state = {
+  profile:null,
+  groupes:[], textures:[], typesRepas:[],
+  residents:[], semaines:[],
+  semaineId:null, jour:"lundi", service:"midi",
+  commandes:new Map(),   // clé "residentId|jour|service" -> valeur
+};
+
+/* ---------- petits utilitaires ---------- */
+function $(id){return document.getElementById(id)}
+function lsSet(k,v){try{localStorage.setItem("m4s_"+k,JSON.stringify(v))}catch(e){}}
+function lsGet(k){try{const v=localStorage.getItem("m4s_"+k);return v?JSON.parse(v):null}catch(e){return null}}
+let toastTimer;
+function toast(txt,isErr){
+  const t=$("toast");t.textContent=txt;t.className="toast show"+(isErr?" err":"");
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.className="toast",2600);
+}
+function fmtDate(d){
+  if(!d) return "";
+  const mois=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+  const dt=new Date(d+"T00:00:00");return dt.getDate()+" "+mois[dt.getMonth()];
+}
+
+/* ---------- démarrage ---------- */
+async function init(){
+  const {data:{session}} = await client.auth.getSession();
+  if(session) enterApp(); else showLogin();
+
+  client.auth.onAuthStateChange((event)=>{
+    if(event==="SIGNED_OUT") showLogin();
+  });
+
+  $("loginBtn").addEventListener("click",doLogin);
+  $("password").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin()});
+  $("logoutBtn").addEventListener("click",()=>client.auth.signOut());
+}
+
+function showLogin(){
+  $("loader").classList.add("hidden");
+  $("app").classList.add("hidden");
+  $("login").classList.remove("hidden");
+}
+
+async function doLogin(){
+  const email=$("email").value.trim();
+  const password=$("password").value;
+  const msg=$("loginMsg");
+  if(!email||!password){msg.className="msg err";msg.textContent="Renseigne ton email et ton mot de passe.";return}
+  $("loginBtn").disabled=true;msg.className="msg";msg.textContent="Connexion…";
+  const {error}=await client.auth.signInWithPassword({email,password});
+  $("loginBtn").disabled=false;
+  if(error){
+    msg.className="msg err";
+    msg.textContent="Email ou mot de passe incorrect.";
+    return;
+  }
+  msg.textContent="";
+  enterApp();
+}
+
+async function enterApp(){
+  $("login").classList.add("hidden");
+  $("loader").classList.remove("hidden");
+  $("loader").textContent="Chargement des données…";
+  await loadEverything();
+  $("loader").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  const {data:{user}}=await client.auth.getUser();
+  $("who").textContent = state.profile?.nom || user?.email || "";
+}
+
+/* ---------- chargement des données (avec repli cache) ---------- */
+async function loadEverything(){
+  let offline=false;
+  async function fetchOrCache(table,builder,cacheKey){
+    try{
+      const {data,error}=await builder;
+      if(error) throw error;
+      lsSet(cacheKey,data);
+      return data;
+    }catch(e){
+      offline=true;
+      return lsGet(cacheKey)||[];
+    }
+  }
+
+  state.groupes    = await fetchOrCache("groupes",     client.from("groupes").select("*").order("ordre"), "groupes");
+  state.textures   = await fetchOrCache("textures",    client.from("textures").select("*"), "textures");
+  state.typesRepas = await fetchOrCache("types_repas", client.from("types_repas").select("*").order("ordre"), "types_repas");
+  state.residents  = await fetchOrCache("residents",   client.from("residents").select("*").eq("actif",true).order("groupe_code").order("nom_prenom"), "residents");
+  state.semaines   = await fetchOrCache("semaines",    client.from("semaines").select("*").order("date_debut",{ascending:false}), "semaines");
+
+  // profil (nom affiché)
+  try{
+    const {data:{user}}=await client.auth.getUser();
+    if(user){
+      const {data}=await client.from("profiles").select("*").eq("id",user.id).maybeSingle();
+      if(data){state.profile=data;lsSet("profile",data);}
+    }
+  }catch(e){state.profile=lsGet("profile");}
+
+  $("offline").classList.toggle("hidden",!offline);
+
+  // choix de la semaine par défaut : celle qui contient aujourd'hui, sinon la plus récente
+  const today=new Date().toISOString().slice(0,10);
+  const courante=state.semaines.find(s=>s.date_debut<=today && today<=s.date_fin);
+  state.semaineId = courante ? courante.id : (state.semaines[0]?.id ?? null);
+
+  // jour par défaut = aujourd'hui
+  const jsDay=new Date().getDay(); // 0=dim
+  state.jour = JOURS[(jsDay+6)%7].code;
+
+  buildControls();
+  if(state.semaineId!=null) await loadCommandes();
+  render();
+}
+
+async function loadCommandes(){
+  state.commandes=new Map();
+  try{
+    const {data,error}=await client.from("commandes_repas").select("*").eq("semaine_id",state.semaineId);
+    if(error) throw error;
+    lsSet("cmd_"+state.semaineId,data);
+    indexCommandes(data);
+  }catch(e){
+    indexCommandes(lsGet("cmd_"+state.semaineId)||[]);
+    $("offline").classList.remove("hidden");
+  }
+}
+function indexCommandes(rows){
+  for(const r of rows){ state.commandes.set(r.resident_id+"|"+r.jour+"|"+r.service, r.valeur); }
+}
+function mealOf(resId){ return state.commandes.get(resId+"|"+state.jour+"|"+state.service) || ""; }
+
+/* ---------- construction des sélecteurs ---------- */
+function buildControls(){
+  // semaines
+  const sel=$("weekSel");sel.innerHTML="";
+  for(const s of state.semaines){
+    const o=document.createElement("option");
+    o.value=s.id;
+    o.textContent="Semaine "+s.numero+" · "+fmtDate(s.date_debut)+" → "+fmtDate(s.date_fin);
+    sel.appendChild(o);
+  }
+  sel.value=state.semaineId;
+  sel.onchange=async()=>{state.semaineId=Number(sel.value);await loadCommandes();render()};
+
+  // jours
+  const days=$("days");days.innerHTML="";
+  for(const j of JOURS){
+    const b=document.createElement("button");
+    b.className="day"+(j.code===state.jour?" active":"");
+    b.textContent=j.court;b.dataset.jour=j.code;
+    b.onclick=()=>{state.jour=j.code;render()};
+    days.appendChild(b);
+  }
+
+  // service
+  for(const b of $("serviceToggle").children){
+    b.onclick=()=>{state.service=b.dataset.s;render()};
+  }
+}
+
+/* ---------- rendu principal ---------- */
+function render(){
+  // états actifs jours / service
+  for(const b of $("days").children) b.classList.toggle("active",b.dataset.jour===state.jour);
+  for(const b of $("serviceToggle").children) b.classList.toggle("active",b.dataset.s===state.service);
+
+  const list=$("list");list.innerHTML="";
+  if(!state.residents.length){
+    list.innerHTML='<div class="empty">Aucun résident pour l’instant.<br>Ils apparaîtront ici une fois ajoutés.</div>';
+    updateTotals();return;
+  }
+
+  const libGroupe=Object.fromEntries(state.groupes.map(g=>[g.code,g.libelle]));
+  let dernierGroupe=null;
+  for(const r of state.residents){
+    if(r.groupe_code!==dernierGroupe){
+      dernierGroupe=r.groupe_code;
+      const h=document.createElement("div");h.className="group-title";
+      h.textContent=libGroupe[r.groupe_code]||r.groupe_code||"Sans groupe";
+      list.appendChild(h);
+    }
+    list.appendChild(carteResident(r));
+  }
+  updateTotals();
+}
+
+function carteResident(r){
+  const val=mealOf(r.id);
+  const card=document.createElement("div");
+  const estMixe=(r.texture_code==="M");
+  card.className="card"+(val==="Sortie"?" absent":(val?" special":""));
+
+  const info=document.createElement("div");info.className="name";
+  const b=document.createElement("b");b.textContent=r.nom_prenom;info.appendChild(b);
+  const badge=document.createElement("span");
+  badge.className="badge "+(estMixe?"mixe":"normal");
+  badge.textContent=estMixe?"Mixé":"Normal";
+  info.appendChild(badge);
+  card.appendChild(info);
+
+  const sel=document.createElement("select");sel.className="meal";
+  const opt0=document.createElement("option");opt0.value="";opt0.textContent="Repas normal";sel.appendChild(opt0);
+  const cats=[["animation","Animations"],["sortie","Absences"],["invitation","Invitations"],["autre","Autres"]];
+  for(const [cat,lbl] of cats){
+    const grp=state.typesRepas.filter(t=>t.categorie===cat);
+    if(!grp.length) continue;
+    const og=document.createElement("optgroup");og.label=lbl;
+    for(const t of grp){
+      const o=document.createElement("option");o.value=t.code;o.textContent=t.libelle;og.appendChild(o);
+    }
+    sel.appendChild(og);
+  }
+  sel.value=val;
+  sel.onchange=()=>setMeal(r,sel.value);
+  card.appendChild(sel);
+  return card;
+}
+
+/* ---------- enregistrement d'un repas ---------- */
+async function setMeal(resident,valeur){
+  const key=resident.id+"|"+state.jour+"|"+state.service;
+  const ancien=state.commandes.get(key)||"";
+  // mise à jour optimiste (affichage immédiat)
+  if(valeur) state.commandes.set(key,valeur); else state.commandes.delete(key);
+  render();
+
+  try{
+    if(!valeur){
+      const {error}=await client.from("commandes_repas").delete()
+        .match({resident_id:resident.id,semaine_id:state.semaineId,jour:state.jour,service:state.service});
+      if(error) throw error;
+    }else{
+      const {error}=await client.from("commandes_repas").upsert(
+        {resident_id:resident.id,semaine_id:state.semaineId,jour:state.jour,service:state.service,valeur},
+        {onConflict:"resident_id,semaine_id,jour,service"}
+      );
+      if(error) throw error;
+    }
+    // rafraîchir le cache local de la semaine
+    lsSet("cmd_"+state.semaineId,[...state.commandes].map(([k,v])=>{
+      const [resident_id,jour,service]=k.split("|");
+      return {resident_id:Number(resident_id),semaine_id:state.semaineId,jour,service,valeur:v};
+    }));
+  }catch(e){
+    // revert en cas d'échec
+    if(ancien) state.commandes.set(key,ancien); else state.commandes.delete(key);
+    render();
+    toast("Enregistrement impossible — vérifie ta connexion",true);
+  }
+}
+
+/* ---------- totaux en direct ---------- */
+function updateTotals(){
+  let total=0,mixe=0,normal=0;
+  for(const r of state.residents){
+    const v=mealOf(r.id);
+    if(v==="Sortie") continue;        // absent : ne compte pas
+    total++;
+    if(r.texture_code==="M") mixe++; else normal++;
+  }
+  animNumber($("tTotal"),total);
+  $("tNormal").textContent=normal;
+  $("tMixe").textContent=mixe;
+}
+function animNumber(el,val){
+  el.textContent=val;
+  el.style.transform="scale(1.18)";
+  setTimeout(()=>el.style.transform="scale(1)",120);
+}
+
+init();
+</script>
+</body>
+</html>
