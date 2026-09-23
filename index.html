@@ -634,6 +634,33 @@
     </div>
   </div>
 
+  <!-- [SEC-3.0b] Écran : compte créé mais pas encore autorisé -->
+  <div id="ecran-non-autorise" class="m4s-login" style="display:none">
+    <div class="m4s-login__carte m4s-carte">
+      <div class="m4s-app-titre" style="margin-bottom:8px">Compte en attente d'autorisation</div>
+      <div class="m4s-login__sous">Votre compte existe mais n'a pas encore été activé par un administrateur M4S. Contactez-le pour obtenir l'accès.</div>
+      <button id="btn-deconnexion-na" class="m4s-btn m4s-btn--or">Se déconnecter</button>
+    </div>
+  </div>
+
+  <!-- [SEC-3.0c] Écran : changement de mot de passe obligatoire (première connexion) -->
+  <div id="ecran-changer-mdp" class="m4s-login" style="display:none">
+    <div class="m4s-login__carte m4s-carte">
+      <div class="m4s-app-titre" style="margin-bottom:8px">Choisissez votre mot de passe</div>
+      <div class="m4s-login__sous">Votre mot de passe était temporaire. Définissez-en un nouveau (12 caractères minimum) pour continuer.</div>
+      <div class="m4s-champ">
+        <label for="nouveau-mdp-1">Nouveau mot de passe</label>
+        <input id="nouveau-mdp-1" class="m4s-input" type="password" autocomplete="new-password" />
+      </div>
+      <div class="m4s-champ">
+        <label for="nouveau-mdp-2">Confirmez le mot de passe</label>
+        <input id="nouveau-mdp-2" class="m4s-input" type="password" autocomplete="new-password" />
+      </div>
+      <button id="btn-changer-mdp" class="m4s-btn m4s-btn--or">Valider</button>
+      <div id="changer-mdp-erreur" class="m4s-login__erreur" role="alert"></div>
+    </div>
+  </div>
+
   <!-- [SEC-3.1..3.3] Application : barre latérale + zone de vues -->
   <div id="app" class="m4s-app">
 
@@ -690,7 +717,7 @@
      La clé « anon » est publique par conception (voir architecture §3.4).
      ------------------------------------------------------------------- */
   const CONFIG = {
-    version: "M4S v0.22.0",
+    version: "M4S v0.23.0",
     schemaVersion: 1,
     supabase: {
       url:     "https://fbuernmjzqytyfltbktw.supabase.co",
@@ -704,7 +731,12 @@
     // UNIQUEMENT dans le localStorage de CE navigateur (jamais dans ce
     // fichier ni dans le depot Git). La 1re connexion reste manuelle ;
     // ensuite c'est automatique tant que ce mode est actif.
-    modeTest: true,
+    // v0.22.1 : DÉSACTIVÉ pour l'utilisation en production (le mot de passe
+    // était stocké en clair). Au démarrage, tout identifiant mémorisé par une
+    // version antérieure est effacé (voir [SEC-4.11]). La session Supabase
+    // (jeton rafraîchi, sans mot de passe) continue d'éviter de se
+    // reconnecter à chaque ouverture.
+    modeTest: false,
     cleTest:  "m4s_test_ident",
   };
 
@@ -732,6 +764,7 @@
     { cle: "textures",          titre: "Textures, régimes, aversions", pole: "C", afficher: vueTextures },
     { cle: "cat-encadrants",    titre: "Catégories d'encadrants",    pole: "C", afficher: vueCategoriesEncadrants },
     { cle: "cat-dotations",     titre: "Dotations (catalogue)",      pole: "C", afficher: vueConfigDotations },
+    { cle: "utilisateurs",      titre: "Utilisateurs",              pole: "C", afficher: vueUtilisateurs, requiertAdmin: true },
 
     { cle: "planning",          titre: "Planning résidents & AT",   pole: "D", afficher: vuePlanning },
     { cle: "etat-familles",     titre: "État mensuel repas famille",pole: "D", afficher: vuePlaceholder },
@@ -867,6 +900,26 @@
       if (!r.ok) throw new Error(`Suppression ${table} : ${r.status} ${await r.text()}`);
     },
 
+    // Appel d'une fonction PostgreSQL exposée en RPC (POST /rest/v1/rpc/<nom>).
+    async rpc(nom, params = {}) {
+      const r = await fetch(`${CONFIG.supabase.url}/rest/v1/rpc/${nom}`, {
+        method: "POST", headers: API.entetes(true), body: JSON.stringify(params),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.message || data.hint || `Appel ${nom} : ${r.status}`);
+      return data;
+    },
+
+    // Change le mot de passe de l'utilisateur CONNECTÉ (endpoint Auth standard).
+    async changerMotDePasse(nouveauMdp) {
+      const r = await fetch(`${CONFIG.supabase.url}/auth/v1/user`, {
+        method: "PUT", headers: API.entetes(true), body: JSON.stringify({ password: nouveauMdp }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.msg || data.message || "Échec du changement de mot de passe");
+      return data;
+    },
+
     // Modification REST (UPDATE) ciblée par un filtre PostgREST. Renvoie la ligne.
     async modifier(table, filtre, patch) {
       const r = await fetch(`${CONFIG.supabase.url}/rest/v1/${table}?${filtre}`, {
@@ -900,6 +953,14 @@
     },
     purger() { ETAT.session = null; ETAT.utilisateur = null; localStorage.removeItem(CONFIG.cleSession); },
     async connecter(email, mdp) { AUTH.enregistrerSession(await API.connexion(email, mdp)); },
+    // Charge role/autorise/must_change_password du compte connecté. La
+    // lecture réussit toujours (RLS "profiles lisibles connectes" =
+    // n'importe quel authentifié), qu'il soit autorisé ou non.
+    async chargerProfil() {
+      const lignes = await API.lire("profiles", `id=eq.${ETAT.utilisateur.id}&select=role,autorise,must_change_password`);
+      ETAT.profil = lignes[0] || { role: "lecture", autorise: false, must_change_password: false };
+      return ETAT.profil;
+    },
     async deconnecter() { await API.deconnexion(); AUTH.purger(); },
   };
 
@@ -1478,6 +1539,133 @@
   /* -------------------------------------------------------------------
      [SEC-4.9] MODULES MÉTIER
      ------------------------------------------------------------------- */
+
+  /* =======================================================================
+     [SEC-4.9] MODULE — Utilisateurs (comptes M4S)
+     Rôle : créer des comptes, réinitialiser un mot de passe, activer ou
+     désactiver l'accès d'un utilisateur — sans jamais passer par le
+     tableau de bord Supabase. Réservé aux administrateurs (RPC côté
+     base, revérifiées par m4s_est_admin() à chaque appel).
+     Dépend de : API.rpc, PERSISTANCE (aucun accès direct à auth.users
+     depuis le client : tout passe par les fonctions RPC).
+     ======================================================================= */
+  async function vueUtilisateurs(conteneur) {
+    conteneur.innerHTML = "";
+    conteneur.append(U.el("div", { class: "m4s-page-titre" },
+      U.el("div", {}, U.el("h1", {}, "Utilisateurs"),
+        U.el("div", { class: "m4s-sous" }, "Comptes ayant accès à M4S")),
+    ));
+    const zone = U.el("div");
+    conteneur.append(zone);
+    zone.append(U.el("div", { class: "m4s-carte" }, U.el("p", { class: "m4s-placeholder" }, "Chargement…")));
+
+    let utilisateurs;
+    async function recharger() {
+      utilisateurs = await API.rpc("m4s_lister_utilisateurs");
+    }
+    try { await recharger(); }
+    catch (e) {
+      zone.innerHTML = "";
+      zone.append(U.el("div", { class: "m4s-carte" }, U.el("p", { class: "m4s-placeholder" }, "Impossible de charger : " + e.message)));
+      return;
+    }
+
+    const LIBELLE_ROLE = { admin: "Administrateur", edition: "Édition", lecture: "Lecture" };
+
+    // Boîte d'affichage unique d'un mot de passe temporaire (copiable),
+    // à communiquer à la personne concernée — jamais renvoyé ensuite.
+    function afficherMdpTemporaire(email, mdp) {
+      const boite = U.el("div", { class: "m4s-carte", style: "border:2px solid var(--ambre-bord);background:var(--ambre-fond)" });
+      boite.append(U.el("div", { class: "m4s-vue-titre" }, U.el("h2", {}, "Mot de passe temporaire — " + email)));
+      boite.append(U.el("p", {}, "À communiquer à la personne concernée. Il ne sera plus jamais affiché. Elle devra le changer à sa première connexion."));
+      const champ = U.el("input", { class: "m4s-input", value: mdp, readonly: true, style: "font-family:monospace;font-size:16px;font-weight:700;text-align:center" });
+      boite.append(champ);
+      boite.append(U.el("button", { class: "m4s-btn m4s-btn--or", style: "margin-top:8px", type: "button", onclick: () => { champ.select(); document.execCommand("copy"); toast("Copié.", "succes", 1500); } }, "Copier"));
+      zone.prepend(boite);
+    }
+
+    function dessiner() {
+      zone.innerHTML = "";
+
+      // --- Création d'un compte ---
+      const carteCreation = U.el("div", { class: "m4s-carte" });
+      carteCreation.append(U.el("div", { class: "m4s-vue-titre" }, U.el("h2", {}, "Créer un compte")));
+      const champNom = U.el("input", { class: "m4s-input", placeholder: "Nom Prénom" });
+      const champEmail = U.el("input", { class: "m4s-input", type: "email", placeholder: "prenom.nom@etablissement.fr" });
+      const champRole = U.el("select", { class: "m4s-input" },
+        U.el("option", { value: "lecture" }, "Lecture"),
+        U.el("option", { value: "edition" }, "Édition"),
+        U.el("option", { value: "admin" }, "Administrateur"));
+      const btnCreer = U.el("button", { class: "m4s-btn m4s-btn--or", type: "button" }, "Créer le compte");
+      btnCreer.addEventListener("click", async () => {
+        const nom = champNom.value.trim(), email = champEmail.value.trim();
+        if (!nom || !email) { toast("Nom et e-mail requis.", "erreur"); return; }
+        btnCreer.disabled = true;
+        try {
+          const [res] = await API.rpc("m4s_creer_utilisateur", { p_email: email, p_nom: nom, p_role: champRole.value });
+          await recharger();
+          dessiner();
+          afficherMdpTemporaire(res.email, res.mot_de_passe_temporaire);
+          toast("Compte créé.", "succes");
+        } catch (e) { toast("Échec : " + e.message, "erreur", 6000); }
+        finally { btnCreer.disabled = false; }
+      });
+      carteCreation.append(U.el("div", { style: "display:grid;gap:10px;grid-template-columns:2fr 2fr 1fr auto;align-items:end" },
+        U.el("div", { class: "m4s-champ" }, U.el("label", {}, "Nom"), champNom),
+        U.el("div", { class: "m4s-champ" }, U.el("label", {}, "E-mail"), champEmail),
+        U.el("div", { class: "m4s-champ" }, U.el("label", {}, "Rôle"), champRole),
+        btnCreer));
+      zone.append(carteCreation);
+
+      // --- Liste des comptes existants ---
+      const carteListe = U.el("div", { class: "m4s-carte" });
+      carteListe.append(U.el("div", { class: "m4s-vue-titre" }, U.el("h2", {}, "Comptes"), U.el("span", { class: "m4s-compteur" }, `${utilisateurs.length} compte(s)`)));
+      const cadre = U.el("div", { class: "m4s-tableau-cadre" });
+      const thead = U.el("thead", {}, U.el("tr", {},
+        U.el("th", {}, "Nom"), U.el("th", {}, "E-mail"), U.el("th", {}, "Rôle"),
+        U.el("th", {}, "Statut"), U.el("th", {}, "Dernière connexion"), U.el("th", {}, "Actions")));
+      const tbody = U.el("tbody");
+      utilisateurs.forEach(u => {
+        const soiMeme = u.id === ETAT.utilisateur.id;
+        const btnReset = U.el("button", { class: "m4s-btn m4s-btn--petit", type: "button" }, "Réinitialiser le mot de passe");
+        btnReset.addEventListener("click", async () => {
+          if (!confirm(`Générer un nouveau mot de passe temporaire pour ${u.email} ?`)) return;
+          btnReset.disabled = true;
+          try {
+            const [res] = await API.rpc("m4s_reinitialiser_mot_de_passe", { p_user_id: u.id });
+            await recharger(); dessiner();
+            afficherMdpTemporaire(res.email, res.mot_de_passe_temporaire);
+          } catch (e) { toast("Échec : " + e.message, "erreur", 6000); }
+        });
+        const btnBascule = U.el("button", {
+          class: "m4s-btn m4s-btn--petit", type: "button", disabled: soiMeme,
+          title: soiMeme ? "Vous ne pouvez pas retirer votre propre accès" : "",
+        }, u.autorise ? "Désactiver l'accès" : "Activer l'accès");
+        btnBascule.addEventListener("click", async () => {
+          btnBascule.disabled = true;
+          try {
+            await API.rpc("m4s_definir_autorisation", { p_user_id: u.id, p_autorise: !u.autorise });
+            await recharger(); dessiner();
+            toast("Mis à jour.", "succes");
+          } catch (e) { toast("Échec : " + e.message, "erreur", 6000); btnBascule.disabled = false; }
+        });
+        tbody.append(U.el("tr", {},
+          U.el("td", { style: "font-weight:500" }, u.nom || "—"),
+          U.el("td", {}, u.email),
+          U.el("td", {}, LIBELLE_ROLE[u.role] || u.role),
+          U.el("td", {},
+            U.el("span", { class: "m4s-badge " + (u.autorise ? "m4s-badge--normal" : "m4s-badge--mixe") }, u.autorise ? "Autorisé" : "Non autorisé"),
+            u.must_change_password ? U.el("span", { class: "m4s-badge m4s-badge--at", style: "margin-left:6px" }, "MDP temp.") : null),
+          U.el("td", { class: "m4s-muet" }, u.derniere_connexion ? U.dateFR(u.derniere_connexion.slice(0, 10)) : "Jamais connecté"),
+          U.el("td", { style: "display:flex;gap:6px" }, btnReset, btnBascule)));
+      });
+      cadre.append(U.el("table", { class: "m4s-tableau" }, thead, tbody));
+      carteListe.append(cadre);
+      zone.append(carteListe);
+    }
+
+    dessiner();
+  }
 
   function vuePlaceholder(conteneur, module) {
     conteneur.innerHTML = "";
@@ -4857,15 +5045,20 @@
       if (accueil) nav.append(boutonNav(accueil.cle, accueil.titre, "m4s-nav__lien m4s-nav__lien--accueil"));
       Object.entries(POLES).forEach(([code, libelle]) => {
         const bloc = U.el("div", { class: "m4s-nav__pole" }, U.el("div", { class: "m4s-nav__pole-titre" }, libelle));
-        MODULES.filter(m => m.pole === code).forEach(m => {
-          bloc.append(boutonNav(m.cle, m.titre, "m4s-nav__lien"));
-        });
+        MODULES.filter(m => m.pole === code)
+          .filter(m => !m.requiertAdmin || ETAT.profil?.role === "admin")
+          .forEach(m => {
+            bloc.append(boutonNav(m.cle, m.titre, "m4s-nav__lien"));
+          });
         nav.append(bloc);
       });
     },
     aller(cle) {
       const module = MODULES.find(m => m.cle === cle);
       if (!module) return;
+      if (module.requiertAdmin && ETAT.profil?.role !== "admin") {
+        toast("Réservé aux administrateurs.", "erreur"); return;
+      }
       ETAT.moduleActif = cle;
       document.querySelectorAll(".m4s-nav__lien").forEach(l => l.classList.toggle("m4s-nav__lien--actif", l.dataset.cle === cle));
       const conteneur = U.$("#app-vues");
@@ -4973,12 +5166,42 @@
      ------------------------------------------------------------------- */
   function afficherApp(connecte) {
     U.$("#ecran-login").style.display = connecte ? "none" : "flex";
+    U.$("#ecran-non-autorise").style.display = "none";
+    U.$("#ecran-changer-mdp").style.display = "none";
     U.$("#app").classList.toggle("m4s-app--visible", connecte);
+  }
+
+  // Affiche l'écran "compte pas encore autorisé" (accès bloqué par RLS).
+  function afficherEcranNonAutorise() {
+    U.$("#ecran-login").style.display = "none";
+    U.$("#app").classList.remove("m4s-app--visible");
+    U.$("#ecran-changer-mdp").style.display = "none";
+    U.$("#ecran-non-autorise").style.display = "flex";
+  }
+
+  // Affiche l'écran de changement de mot de passe obligatoire.
+  function afficherEcranChangerMdp() {
+    U.$("#ecran-login").style.display = "none";
+    U.$("#app").classList.remove("m4s-app--visible");
+    U.$("#ecran-non-autorise").style.display = "none";
+    U.$("#ecran-changer-mdp").style.display = "flex";
+  }
+
+  // Point de passage commun après toute connexion réussie (login manuel
+  // ou restauration de session) : vérifie l'autorisation et le mot de
+  // passe temporaire AVANT de démarrer l'application.
+  async function apresConnexion() {
+    const profil = await AUTH.chargerProfil();
+    if (!profil.autorise) { afficherEcranNonAutorise(); return; }
+    if (profil.must_change_password) { afficherEcranChangerMdp(); return; }
+    await demarrerApp();
   }
 
   async function demarrerApp() {
     U.$("#app-version").textContent = CONFIG.version;
-    U.$("#app-user").textContent = ETAT.utilisateur?.email || "";
+    const libelleRole = { admin: "Administrateur", edition: "Édition", lecture: "Lecture" };
+    U.$("#app-user").textContent = (ETAT.utilisateur?.email || "") +
+      (ETAT.profil ? ` (${libelleRole[ETAT.profil.role] || ETAT.profil.role})` : "");
     ROUTAGE.construireNav();
     SEMAINES.initialiser();
     ROUTAGE.aller("tableau-de-bord");
@@ -4992,7 +5215,7 @@
       const email = U.$("#login-email").value.trim(), mdp = U.$("#login-mdp").value;
       if (!email || !mdp) { err.textContent = "Renseignez l'e-mail et le mot de passe."; return; }
       btn.disabled = true; btn.textContent = "Connexion…";
-      try { await AUTH.connecter(email, mdp); if (CONFIG.modeTest) TEST.memoriser(email, mdp); await demarrerApp(); }
+      try { await AUTH.connecter(email, mdp); if (CONFIG.modeTest) TEST.memoriser(email, mdp); await apresConnexion(); }
       catch (e) { err.textContent = e.message; }
       finally { btn.disabled = false; btn.textContent = "Se connecter"; }
     };
@@ -5001,22 +5224,47 @@
   }
 
   function brancherDeconnexion() {
-    U.$("#btn-deconnexion").addEventListener("click", async () => {
+    const deconnecter = async () => {
       await AUTH.deconnecter(); if (CONFIG.modeTest) TEST.oublier(); afficherApp(false); U.$("#login-mdp").value = "";
+    };
+    U.$("#btn-deconnexion").addEventListener("click", deconnecter);
+    U.$("#btn-deconnexion-na").addEventListener("click", deconnecter);
+  }
+
+  // Écran de changement de mot de passe obligatoire (première connexion
+  // avec un mot de passe temporaire créé par un administrateur).
+  function brancherChangerMdp() {
+    const btn = U.$("#btn-changer-mdp"), err = U.$("#changer-mdp-erreur");
+    btn.addEventListener("click", async () => {
+      err.textContent = "";
+      const mdp1 = U.$("#nouveau-mdp-1").value, mdp2 = U.$("#nouveau-mdp-2").value;
+      if (mdp1.length < 12) { err.textContent = "Le mot de passe doit faire au moins 12 caractères."; return; }
+      if (mdp1 !== mdp2) { err.textContent = "Les deux mots de passe ne correspondent pas."; return; }
+      btn.disabled = true; btn.textContent = "Enregistrement…";
+      try {
+        await API.changerMotDePasse(mdp1);
+        await API.modifier("profiles", `id=eq.${ETAT.utilisateur.id}`, { must_change_password: false });
+        ETAT.profil.must_change_password = false;
+        await demarrerApp();
+      } catch (e) { err.textContent = e.message; }
+      finally { btn.disabled = false; btn.textContent = "Valider"; }
     });
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
-    brancherLogin(); brancherDeconnexion();
+    brancherLogin(); brancherDeconnexion(); brancherChangerMdp();
+    // [SÉCURITÉ] Mode test inactif → on efface les identifiants en clair
+    // qu'une version antérieure aurait pu laisser dans ce navigateur.
+    if (!CONFIG.modeTest) TEST.oublier();
     const ok = await AUTH.restaurer();
-    if (ok) { await demarrerApp(); return; }
+    if (ok) { await apresConnexion(); return; }
     // [TEST] Reconnexion auto avec les identifiants memorises (si mode test)
     if (CONFIG.modeTest) {
       const c = TEST.lire();
       if (c && c.email && c.mdp) {
         U.$("#login-email").value = c.email;
         U.$("#login-mdp").value = c.mdp;
-        try { await AUTH.connecter(c.email, c.mdp); await demarrerApp(); return; }
+        try { await AUTH.connecter(c.email, c.mdp); await apresConnexion(); return; }
         catch (_) { TEST.oublier(); }
       }
     }
