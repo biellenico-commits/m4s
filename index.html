@@ -312,6 +312,15 @@
     .m4s-case--invitation { background: var(--sarcelle-fond); color: var(--sarcelle); border-color: var(--sarcelle-bord); }
     .m4s-case--autre      { background: var(--violet-fond);   color: var(--violet);   border-color: var(--violet-bord); }
 
+    /* Case « service non applicable » (ex. soir de l'accueil de jour) :
+       cellule neutre, non cliquable, affichant « — ». Voir serviceApplicable(). */
+    .m4s-case-na {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 30px; border-radius: var(--rayon-sm);
+      background: var(--surface-2); color: var(--texte-tres-doux);
+      font-weight: 600; cursor: default; user-select: none;
+    }
+
     /* Liste déroulante des statuts (ouverte au clic sur une case) */
     .m4s-menu-fond { position: fixed; inset: 0; z-index: 60; background: transparent; }
     .m4s-menu {
@@ -681,7 +690,7 @@
      La clé « anon » est publique par conception (voir architecture §3.4).
      ------------------------------------------------------------------- */
   const CONFIG = {
-    version: "M4S v0.21.0",
+    version: "M4S v0.22.0",
     schemaVersion: 1,
     supabase: {
       url:     "https://fbuernmjzqytyfltbktw.supabase.co",
@@ -752,6 +761,25 @@
       .filter(g => occupes.has(g.code))
       .sort((a, b) => (a.ordre ?? 99) - (b.ordre ?? 99));
   }
+
+  /* ----- RÈGLE MÉTIER CENTRALISÉE : services applicables par groupe -----
+     L'accueil de jour (ADJ) ne prend JAMAIS de repas du soir.
+     Toute grille, tout compteur et tout rapport qui affiche ou compte un
+     service DOIT passer par cette fonction (principe C7 : une règle écrite
+     une seule fois). Une case non applicable s'affiche en « — » neutre et
+     n'entre dans aucun total.
+     Rappel : en base, « absence de ligne = présent ». Sans cette règle, les
+     résidents ADJ seraient comptés présents le soir par défaut.          */
+  const GROUPE_ADJ = "ADJ";
+  function serviceApplicable(groupeCode, service) {
+    if (groupeCode === GROUPE_ADJ && service === "soir") return false;
+    return true;
+  }
+  // Petit générateur de la case neutre « — » (réutilisé par les grilles)
+  function caseNonApplicable() {
+    return U.el("span", { class: "m4s-case-na", title: "Service non applicable (accueil de jour : pas de repas le soir)" }, "—");
+  }
+
   // Textures par plat (entrée / plat / dessert) : N = Normal, M = Mixé
   const TEXTURES_PLAT = [ { code: "N", libelle: "Normal" }, { code: "M", libelle: "Mixé" } ];
   const SERVICES_MIDI = [ { code: 1, libelle: "1er service" }, { code: 2, libelle: "2e service" } ];
@@ -3310,6 +3338,12 @@
           const jourCle = j.nom.toLowerCase();
           const teinte = `color-mix(in srgb, ${COULEURS_JOUR[iJour]} ${idxLigne % 2 ? 22 : 12}%, white)`;
           SERVICES.forEach((service, iServ) => {
+            // [ADJ] Pas de soir pour l'accueil de jour → case neutre non saisissable
+            if (!serviceApplicable(groupe, service)) {
+              tr.append(U.el("td", { class: "m4s-td-case", style: `background:${teinte}` +
+                (iServ === 0 ? `;border-left:3px solid color-mix(in srgb, ${COULEURS_JOUR[iJour]} 60%, transparent)` : "") }, caseNonApplicable()));
+              return;
+            }
             const cle = `${groupe}|${c.id}|${jourCle}|${service}`;
             const val = index.get(cle) || "";
             const input = U.el("input", {
@@ -3343,7 +3377,8 @@
         const jourCle = j.nom.toLowerCase();
         SERVICES.forEach((service, iServ) => {
           const cell = U.el("td", { class: "m4s-td-case", style: "text-align:center;font-weight:800" + (iServ === 0 ? `;border-left:3px solid color-mix(in srgb, ${COULEURS_JOUR[iJour]} 60%, transparent)` : "") });
-          champsTotal[`${jourCle}|${service}`] = cell;
+          if (serviceApplicable(groupe, service)) champsTotal[`${jourCle}|${service}`] = cell;
+          else cell.textContent = "—";   // [ADJ] total non applicable
           trT.append(cell);
         });
       });
@@ -3635,7 +3670,8 @@
   // Construit les 12 mini-calendriers (utilisé à l'écran ET à l'impression,
   // pour garantir un rendu strictement identique).
   function construireGrille(conteneur, personne, annee, statuts, sejoursPersonne, categorieDuStatut, pourImpression) {
-    const teinte = { present: "#A9E8C0", sortie: "#F0BCBC", animation: "#F0D9A8", invitation: "#A8DDE4", autre: "#CABDEA" };
+    // « na » = service non applicable (soir de l'accueil de jour) → gris neutre
+    const teinte = { present: "#A9E8C0", sortie: "#F0BCBC", animation: "#F0D9A8", invitation: "#A8DDE4", autre: "#CABDEA", na: "#E5E7EB" };
     const NOMS_JOUR = ["L", "M", "M", "J", "V", "S", "D"];
 
     for (let m = 0; m < 12; m++) {
@@ -3667,7 +3703,9 @@
           }, String(jour));
         } else {
           const cMidi = teinte[categorieJour(iso, "midi", statuts, categorieDuStatut)];
-          const cSoir = teinte[categorieJour(iso, "soir", statuts, categorieDuStatut)];
+          const cSoir = serviceApplicable(personne.groupe_code, "soir")
+            ? teinte[categorieJour(iso, "soir", statuts, categorieDuStatut)]
+            : teinte.na;   // [ADJ] pas de repas le soir
           cellule = U.el("div", {
             style: "aspect-ratio:1;position:relative;font-size:10px;font-weight:700;border-radius:3px;overflow:hidden;border:1px solid var(--bordure);display:flex;align-items:center;justify-content:center",
             title: "Midi / Soir",
@@ -3830,6 +3868,7 @@
 
       residents.forEach(r => {
         if (!groupesAffiches.some(g => g.code === r.groupe_code)) return;   // écarte AT/lieux
+        if (!serviceApplicable(r.groupe_code, service)) return;             // [ADJ] non concerné le soir
         const valeur = indexResidents.get(`${r.id}|${jourCle}|${service}`) || "";
         const cat = valeur ? (categorieDuStatut[valeur] || "autre") : null;
 
@@ -4050,6 +4089,12 @@
           const jourCle = j.nom.toLowerCase();
           const teinte = `color-mix(in srgb, ${COULEURS_JOUR[iJour]} ${idxLigne % 2 ? 18 : 9}%, white)`;
           SERVICES.forEach((service, iServ) => {
+            // [ADJ] Service non applicable → case neutre, hors compteurs
+            if (!serviceApplicable(r.groupe_code, service)) {
+              tr.append(U.el("td", { class: "m4s-td-case", style: `background:${teinte}` +
+                (iServ === 0 ? `;border-left:3px solid color-mix(in srgb, ${COULEURS_JOUR[iJour]} 60%, transparent)` : "") }, caseNonApplicable()));
+              return;
+            }
             const valeur = indexResidents.get(`${r.id}|${jourCle}|${service}`) || "";
             const cat = valeur ? (categorieDuStatut[valeur] || "autre") : null;
             const absent = cat === "sortie";
@@ -4076,7 +4121,8 @@
         jours.forEach((j, iJour) => {
           const jourCle = j.nom.toLowerCase();
           SERVICES.forEach((service, iServ) => {
-            const v = valeurFn(jourCle, service);
+            // [ADJ] Totaux du soir non applicables pour l'accueil de jour
+            const v = serviceApplicable(groupe, service) ? valeurFn(jourCle, service) : "—";
             tr.append(U.el("td", {
               class: "m4s-td-case",
               style: `text-align:center;font-weight:${accent ? 800 : 600}` + (iServ === 0 ? `;border-left:3px solid color-mix(in srgb, ${COULEURS_JOUR[iJour]} 60%, transparent)` : ""),
@@ -4141,6 +4187,7 @@
           jours.forEach(j => {
             const jc = j.nom.toLowerCase();
             SERVICES.forEach(service => {
+              if (!serviceApplicable(r.groupe_code, service)) return;   // [ADJ] hors compteurs
               const cat = catOf(indexResidents.get(`${r.id}|${jc}|${service}`) || "");
               if (cat === "sortie") return;
               inc(jc, service, service1 ? "s1" : "s2");
@@ -4178,6 +4225,9 @@
           jours.forEach(j => {
             const jc = j.nom.toLowerCase();
             SERVICES.forEach((service, iS) => {
+              if (!serviceApplicable(r.groupe_code, service)) {   // [ADJ] case neutre
+                body += `<td class="cell st-na${iS === 0 ? " db" : ""}">—</td>`; return;
+              }
               const v = indexResidents.get(`${r.id}|${jc}|${service}`) || "";
               body += `<td class="cell ${clsCat(catOf(v))}${iS === 0 ? " db" : ""}">${v || "OK"}</td>`;
             });
@@ -4186,7 +4236,7 @@
         });
         const ligne = (lib, fn, cls = "") => {
           let tr = `<tr class="syn ${cls}"><td class="lib">${lib}</td>`;
-          jours.forEach(j => { const jc = j.nom.toLowerCase(); SERVICES.forEach((service, iS) => { tr += `<td class="val${iS === 0 ? " db" : ""}">${fn(jc, service)}</td>`; }); });
+          jours.forEach(j => { const jc = j.nom.toLowerCase(); SERVICES.forEach((service, iS) => { tr += `<td class="val${iS === 0 ? " db" : ""}">${serviceApplicable(groupe, service) ? fn(jc, service) : "—"}</td>`; }); });
           return tr + `</tr>`;
         };
         body += ligne("1<sup>er</sup> service — présents", (j, s) => get(j, s, "s1"), "sep");
@@ -4235,6 +4285,7 @@
         .st-sortie { background:#FDECED; color:#C02434; }
         .st-invitation { background:#E6F5F7; color:#0C6C7A; }
         .st-autre { background:#F0ECFA; color:#5B3AA8; }
+        .st-na { background:#F1F3F6; color:#A3ADBD; }
         .db { border-left:1.2pt solid #B4BECD !important; }
         .syn td { background:#FBFCFE; font-size:7.8pt; }
         .syn .lib { text-align:left; padding-left:8px; font-weight:600; color:#55617A; }
@@ -4340,6 +4391,7 @@
 
     // Present a ce repas si le statut n'est PAS de categorie « sortie »
     function present(r, service) {
+      if (!serviceApplicable(r.groupe_code, service)) return false;   // [ADJ] pas de soir
       const val = idxRes.get(r.id + "|" + jcle + "|" + service) || "";
       const cat = val ? (categorieDuStatut[val] || "autre") : null;
       return cat !== "sortie";
@@ -4470,7 +4522,7 @@
       cGrp.append(U.el("div", { class: "m4s-tdb-grp" },
         U.el("span", { class: "m4s-tdb-grp__nom" }, g.libelle || g.code),
         U.el("span", { class: "m4s-tdb-grp__v" }, String(m)),
-        U.el("span", { class: "m4s-tdb-grp__v" }, String(so))));
+        U.el("span", { class: "m4s-tdb-grp__v" }, serviceApplicable(g.code, "soir") ? String(so) : "—")));
     });
     cGrp.append(U.el("div", { class: "m4s-tdb-grp m4s-tdb-grp--tot" },
       U.el("span", { class: "m4s-tdb-grp__nom" }, "Total residents"),
@@ -4644,6 +4696,12 @@
           const teinte = `color-mix(in srgb, ${couleurJour} ${idxLigne % 2 ? 30 : 18}%, white)`;
           const trait = `color-mix(in srgb, ${couleurJour} 60%, transparent)`;
           SERVICES.forEach((service, iServ) => {
+            // [ADJ] Service non applicable → case neutre, rien d'enregistrable
+            if (!serviceApplicable(r.groupe_code, service)) {
+              tr.append(U.el("td", { class: "m4s-td-case", style: `background:${teinte}` +
+                (iServ === 0 ? `;border-left:3px solid ${trait}` : "") }, caseNonApplicable()));
+              return;
+            }
             const cleIndex = `${r.id}|${jourCle}|${service}`;
             const bouton = U.el("button", { class: "m4s-case", type: "button" });
             majCase(bouton, index.get(cleIndex) || "", types);
