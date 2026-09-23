@@ -717,7 +717,7 @@
      La clé « anon » est publique par conception (voir architecture §3.4).
      ------------------------------------------------------------------- */
   const CONFIG = {
-    version: "M4S v0.23.0",
+    version: "M4S v0.23.1",
     schemaVersion: 1,
     supabase: {
       url:     "https://fbuernmjzqytyfltbktw.supabase.co",
@@ -940,7 +940,7 @@
     async restaurer() {
       const brut = localStorage.getItem(CONFIG.cleSession);
       if (!brut) return false;
-      try { ETAT.session = JSON.parse(brut); await API.utilisateur(); return true; }
+      try { ETAT.session = JSON.parse(brut); ETAT.utilisateur = await API.utilisateur(); return true; }
       catch (_) {
         try { const data = await API.rafraichir(ETAT.session.refresh_token); AUTH.enregistrerSession(data); return true; }
         catch (_) { AUTH.purger(); return false; }
@@ -957,6 +957,10 @@
     // lecture réussit toujours (RLS "profiles lisibles connectes" =
     // n'importe quel authentifié), qu'il soit autorisé ou non.
     async chargerProfil() {
+      // Filet de sécurité : si l'utilisateur n'a pas encore été chargé
+      // (ne devrait plus arriver depuis la correction de restaurer()),
+      // on le récupère avant de continuer plutôt que de planter.
+      if (!ETAT.utilisateur) ETAT.utilisateur = await API.utilisateur();
       const lignes = await API.lire("profiles", `id=eq.${ETAT.utilisateur.id}&select=role,autorise,must_change_password`);
       ETAT.profil = lignes[0] || { role: "lecture", autorise: false, must_change_password: false };
       return ETAT.profil;
@@ -5256,19 +5260,29 @@
     // [SÉCURITÉ] Mode test inactif → on efface les identifiants en clair
     // qu'une version antérieure aurait pu laisser dans ce navigateur.
     if (!CONFIG.modeTest) TEST.oublier();
-    const ok = await AUTH.restaurer();
-    if (ok) { await apresConnexion(); return; }
-    // [TEST] Reconnexion auto avec les identifiants memorises (si mode test)
-    if (CONFIG.modeTest) {
-      const c = TEST.lire();
-      if (c && c.email && c.mdp) {
-        U.$("#login-email").value = c.email;
-        U.$("#login-mdp").value = c.mdp;
-        try { await AUTH.connecter(c.email, c.mdp); await apresConnexion(); return; }
-        catch (_) { TEST.oublier(); }
+    // Filet de sécurité : toute erreur inattendue pendant le démarrage
+    // (session restaurée, chargement du profil…) ramène poliment à
+    // l'écran de connexion plutôt que de laisser une page bloquée/blanche.
+    try {
+      const ok = await AUTH.restaurer();
+      if (ok) { await apresConnexion(); return; }
+      // [TEST] Reconnexion auto avec les identifiants memorises (si mode test)
+      if (CONFIG.modeTest) {
+        const c = TEST.lire();
+        if (c && c.email && c.mdp) {
+          U.$("#login-email").value = c.email;
+          U.$("#login-mdp").value = c.mdp;
+          try { await AUTH.connecter(c.email, c.mdp); await apresConnexion(); return; }
+          catch (_) { TEST.oublier(); }
+        }
       }
+      afficherApp(false);
+    } catch (e) {
+      AUTH.purger();
+      afficherApp(false);
+      const err = U.$("#login-erreur");
+      if (err) err.textContent = "La session précédente n'a pas pu être restaurée, merci de vous reconnecter.";
     }
-    afficherApp(false);
   });
   </script>
 </body>
