@@ -90,6 +90,30 @@
 
       /* [SEC-2.1b] Tableau de bord — jeton additif (n'affecte aucun module existant) */
       --tdb-soir: #B12A6B;   /* couleur du service du soir sur le dashboard */
+
+      /* [SEC-2.1c] Jetons additifs — refonte graphique « inspirée DIHAS »
+         (sept. 2026, voir 00_Architecture.md §7 et PROMPT_CLAUDE.md).
+         Purement additifs : aucune variable existante n'est supprimée ni
+         renommée (C8). Le bleu de marque reste --bleu (#1E3A8A) — pas de
+         rupture de charte, seulement une coque (sidebar/en-tête/nav) plus
+         « institutionnelle », inspirée du kit de référence. */
+      --ds-sidebar-largeur: 256px;
+      --ds-entete-hauteur: 76px;
+      --ds-nav-hauteur: 51px;
+      --ds-icone-nav: 27px;
+      --ds-rayon-nav: 10px;
+      --ds-bleu-clair: #2F5FC0;      /* teinte claire dérivée de --bleu (dégradés) */
+      --ds-nav-actif-degrade: linear-gradient(110deg, var(--bleu), var(--ds-bleu-clair));
+      --ds-sidebar-fond: linear-gradient(115deg, #F6F9FD, var(--fond));
+      --ds-entete-ombre: 0 2px 5px rgba(16, 41, 79, .10);
+      /* Catégorie « Rapports & documents » — absente des teintes existantes */
+      --ds-slate: #4D6582; --ds-slate-fond: #EDF3F8; --ds-slate-bord: #D1DFED;
+      --ds-rayon-carte: 14px;   /* rayon des cartes principales (contrat kit) */
+      /* Couleurs des 7 jours dans les grilles « semaine » (vives, sans marron).
+         Réglables ici : lundi → dimanche. */
+      --jc-1: #2563EB; --jc-2: #0D9488; --jc-3: #EA580C; --jc-4: #DC2626;
+      --jc-5: #7C3AED; --jc-6: #DB2777; --jc-7: #0891B2;
+      --ds-degrade-carte: linear-gradient(125deg, var(--surface), var(--fond));
     }
 
     /* -------------------------------------------------------------------
@@ -113,13 +137,13 @@
     .m4s-app--visible { display: flex; }
 
     .m4s-sidebar {
-      width: 260px; flex-shrink: 0; background: var(--surface);
+      width: var(--ds-sidebar-largeur); flex-shrink: 0; background: var(--ds-sidebar-fond);
       border-right: 1px solid var(--bordure);
       display: flex; flex-direction: column;
       height: 100vh; position: sticky; top: 0; overflow-y: auto; z-index: 50;
     }
-    .m4s-logo-area { padding: 20px 20px 16px; border-bottom: 1px solid var(--bordure); text-align: center; }
-    .m4s-app-titre { font-weight: 800; font-size: var(--taille-lg); margin-top: 12px; letter-spacing: -.3px; }
+    .m4s-logo-area { padding: 18px 16px 14px; text-align: center; }
+    .m4s-app-titre { font-weight: 800; font-size: var(--taille-lg); margin-top: 10px; letter-spacing: -.3px; }
     .m4s-app-sous  { font-size: var(--taille-sm); color: var(--texte-tres-doux); margin-top: 2px; }
 
     /* -------------------------------------------------------------------
@@ -136,30 +160,39 @@
     /* Barre de contexte (sélecteur de semaine) — remplace l'ancien bloc
        vertical de la barre latérale par une ligne horizontale compacte. */
     .m4s-topbar {
-      flex-shrink: 0; display: flex; align-items: center; gap: var(--espace-3);
-      padding: 12px 24px; border-bottom: 1px solid var(--bordure);
-      background: var(--surface);
+      flex-shrink: 0; display: flex; align-items: center; gap: var(--espace-4);
+      height: var(--ds-entete-hauteur); padding: 0 22px; border-bottom: 1px solid var(--bordure);
+      background: var(--surface); box-shadow: var(--ds-entete-ombre);
     }
-    .m4s-semaine { display: flex; align-items: center; gap: var(--espace-2); }
+    .m4s-semaine { display: flex; align-items: center; gap: var(--espace-3); }
     .m4s-semaine label { font-size: var(--taille-xs); text-transform: uppercase; letter-spacing: 1.5px; color: var(--texte-tres-doux); font-weight: 700; }
-    .m4s-semaine-ligne { display: flex; gap: var(--espace-1); align-items: center; }
-    .m4s-semaine-ligne select { min-width: 220px; }
+    .m4s-semaine-ligne {
+      display: flex; gap: var(--espace-1); align-items: center;
+      border: 1px solid var(--bleu-bord); border-radius: var(--ds-rayon-nav);
+      padding: 4px 10px; background: var(--surface); height: 42px;
+    }
+    .m4s-semaine-ligne select { min-width: 200px; border: 0; background: transparent; padding: 4px; font-weight: 600; color: var(--texte); }
 
-    /* Navigation (icône + libellé) */
-    .m4s-nav { flex: 1; padding: 12px 12px 0; overflow-y: auto; }
+    /* Navigation (icône + libellé) — cadence régulière, entrée active en
+       dégradé bleu (inspiré du kit DIHAS, jetons [SEC-2.1c]). */
+    .m4s-nav { flex: 1; padding: 8px 12px 0; overflow-y: auto; }
     .m4s-nav__pole { margin-bottom: var(--espace-2); }
     .m4s-nav__pole-titre { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--texte-tres-doux); font-weight: 700; padding: 12px 10px 6px; }
     .m4s-nav__lien {
-      width: 100%; display: flex; align-items: center; gap: 11px;
-      padding: 9px 12px; border-radius: var(--rayon); border: 0; background: transparent;
-      color: var(--texte-doux); font-size: var(--taille-md); font-weight: 500;
+      width: 100%; display: flex; align-items: center; gap: 14px;
+      min-height: var(--ds-nav-hauteur); margin-bottom: 3px;
+      padding: 9px 12px; border-radius: var(--ds-rayon-nav); border: 1px solid transparent; background: transparent;
+      color: var(--texte-doux); font-size: 14px; font-weight: 500;
       cursor: pointer; text-align: left; transition: all var(--transition);
     }
-    .m4s-nav__lien:hover { background: var(--fond); color: var(--texte); }
-    .m4s-nav__lien--actif { background: var(--bleu-fond); color: var(--bleu); font-weight: 700; }
-    .m4s-nav__ic { flex-shrink: 0; width: 18px; height: 18px; color: var(--texte-tres-doux); display: inline-flex; }
-    .m4s-nav__lien:hover .m4s-nav__ic { color: var(--texte-doux); }
-    .m4s-nav__lien--actif .m4s-nav__ic { color: var(--bleu); }
+    .m4s-nav__lien:hover { background: var(--bleu-fond); color: var(--texte); }
+    .m4s-nav__lien--actif {
+      background: var(--ds-nav-actif-degrade); color: #fff; font-weight: 700;
+      border-color: var(--ds-bleu-clair); box-shadow: inset 0 1px 1px rgba(255,255,255,.3);
+    }
+    .m4s-nav__ic { flex-shrink: 0; width: var(--ds-icone-nav); height: var(--ds-icone-nav); color: var(--texte-tres-doux); display: inline-flex; }
+    .m4s-nav__lien:hover .m4s-nav__ic { color: var(--bleu); }
+    .m4s-nav__lien--actif .m4s-nav__ic { color: #fff; }
     .m4s-nav__ic svg { width: 100%; height: 100%; }
 
     .m4s-sidebar-pied { padding: 14px 20px; border-top: 1px solid var(--bordure); font-size: var(--taille-xs); color: var(--texte-tres-doux); text-align: center; font-weight: 500; display: flex; flex-direction: column; gap: var(--espace-2); }
@@ -172,11 +205,11 @@
        ------------------------------------------------------------------- */
     /* Boutons */
     .m4s-btn {
-      padding: 8px 16px; border-radius: var(--rayon); font-size: var(--taille-md);
+      padding: 10px 16px; border-radius: var(--ds-rayon-nav); font-size: var(--taille-md);
       font-weight: 600; border: 1px solid transparent; cursor: pointer;
       display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
       background: transparent; color: var(--texte-doux); border-color: var(--bordure);
-      transition: all var(--transition);
+      transition: all var(--transition); min-height: 42px;
     }
     .m4s-btn:hover { background: var(--fond); color: var(--texte); border-color: var(--bordure-2); }
     .m4s-btn:disabled { opacity: .5; cursor: not-allowed; }
@@ -185,10 +218,10 @@
     .m4s-btn--fantome { border-color: transparent; }
     .m4s-btn--danger { background: var(--rouge); color: #FFF; border-color: var(--rouge); }
     .m4s-btn--danger:hover { background: #991B1B; color: #FFF; }
-    .m4s-btn--petit { padding: 6px 12px; font-size: var(--taille-sm); }
+    .m4s-btn--petit { padding: 6px 12px; font-size: var(--taille-sm); min-height: 32px; }
 
     /* Carte / bloc-tableau */
-    .m4s-carte { background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon-lg); box-shadow: var(--ombre-sm); margin-bottom: var(--espace-5); overflow: hidden; }
+    .m4s-carte { background: var(--ds-degrade-carte); border: 1px solid var(--bordure); border-radius: var(--ds-rayon-carte); box-shadow: var(--ombre-sm); margin-bottom: var(--espace-5); overflow: hidden; }
     .m4s-carte > * { padding-left: 20px; padding-right: 20px; }
     .m4s-carte > .m4s-tableau-cadre { padding: 0; }
 
@@ -197,6 +230,19 @@
     .m4s-vue-titre h2 { font-size: var(--taille-lg); font-weight: 700; }
     .m4s-vue-titre .m4s-compteur { font-size: var(--taille-sm); color: var(--texte-doux); }
     .m4s-vue-titre .m4s-actions { margin-left: auto; display: flex; gap: var(--espace-2); flex-wrap: wrap; }
+
+    /* [Repas animation] En-têtes de carte colorés selon la nature du repas,
+       pour alerter la production cuisine d'un coup d'œil. Couleurs réglables
+       ici : midi = bleu (--bleu), pique-nique = vert, soir = --tdb-soir (fuchsia). */
+    .m4s-vue-titre--anim-midi { background: var(--bleu); }
+    .m4s-vue-titre--pique     { background: var(--vert); }
+    .m4s-vue-titre--anim-soir { background: var(--tdb-soir); }
+    .m4s-vue-titre--anim-midi h2, .m4s-vue-titre--pique h2, .m4s-vue-titre--anim-soir h2,
+    .m4s-vue-titre--anim-midi .m4s-compteur, .m4s-vue-titre--pique .m4s-compteur, .m4s-vue-titre--anim-soir .m4s-compteur { color: #FFF; }
+    .m4s-legende-anim { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 8px; font-size: var(--taille-sm); font-weight: 600; }
+    .m4s-legende-anim span { display: inline-flex; align-items: center; gap: 6px; }
+    .m4s-legende-anim i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+    .m4s-puce-mixe { background: #CFE0F7; border-radius: 10px; padding: 2px 9px; }
 
     /* Titre de page (hors carte) */
     .m4s-page-titre { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--espace-5); gap: var(--espace-4); flex-wrap: wrap; }
@@ -253,9 +299,9 @@
     }
     table.m4s-tableau { width: 100%; border-collapse: collapse; }
     .m4s-tableau th {
-      background: var(--fond); padding: 10px 14px; font-size: var(--taille-xs);
-      text-transform: uppercase; letter-spacing: 1px; color: var(--texte-tres-doux);
-      font-weight: 700; text-align: left; border-bottom: 1px solid var(--bordure);
+      background: var(--bleu-fond); padding: 10px 14px; font-size: var(--taille-xs);
+      text-transform: uppercase; letter-spacing: 1px; color: var(--bleu);
+      font-weight: 700; text-align: left; border-bottom: 1px solid var(--bleu-bord);
       position: sticky; top: 0; z-index: 2;
     }
     .m4s-tableau td { padding: 10px 14px; font-size: var(--taille-md); border-bottom: 1px solid var(--bordure); vertical-align: middle; }
@@ -291,6 +337,200 @@
     .m4s-tableau--encadrants th.m4s-th-jour { min-width: 96px; }
     .m4s-ligne-total td { border-top: 2px solid var(--bordure-2); background: var(--surface-2); }
 
+    /* ==================================================================
+       [SEC-2.4b] GRILLES « SEMAINE » — présence, commandes résidents /
+       encadrants / famille, animations de la semaine.
+       Habillage commun appliqué par habillerGrilleSemaine() :
+       • en-têtes de jour en couleur pleine (--jc-1…--jc-7, [SEC-2.1c]) ;
+       • colonne du jour mise en avant (« AUJOURD'HUI ») ;
+       • colonnes résident figées à gauche pendant le défilement ;
+       • « OK » discret, exceptions (absent, animation…) en couleurs vives ;
+       • lignes de total en bandeau bleu de marque.
+       Tout se règle ici (couleurs, tailles). Aucune logique métier.
+       ================================================================== */
+    .m4s-grille-semaine { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; }
+    .m4s-grille-semaine th, .m4s-grille-semaine td { border-bottom: 1px solid #E6ECF5; }
+    .m4s-grille-semaine tbody tr:last-child td { border-bottom: 0; }
+
+    /* En-têtes */
+    .m4s-grille-semaine thead th { position: sticky; top: 0; z-index: 4; }
+    .m4s-grille-semaine thead th:not(.m4s-th-jour) {
+      background: linear-gradient(180deg, #2A4DA8, var(--bleu)); color: #fff; border-bottom: 0;
+      font-size: 11px; letter-spacing: 1.2px; vertical-align: middle;
+    }
+    .m4s-grille-semaine th.m4s-th-jour {
+      background: linear-gradient(180deg, color-mix(in srgb, var(--jc) 86%, #fff), var(--jc));
+      color: #fff; border-bottom: 0; border-left: 2px solid rgba(255,255,255,.75);
+      padding: 9px 4px 8px !important; vertical-align: middle; text-transform: none; letter-spacing: 0;
+    }
+    .m4s-grille-semaine .m4s-jour-nom { font-size: 11px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: #fff !important; }
+    .m4s-grille-semaine .m4s-jour-date { font-size: 20px; font-weight: 800; line-height: 1.1; letter-spacing: -.5px; color: #fff; }
+    .m4s-grille-semaine .m4s-services { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 7px 4px 0; }
+    .m4s-grille-semaine .m4s-services span { background: rgba(255,255,255,.26); border-radius: 6px; padding: 2px 0; font-size: 9.5px; font-weight: 800; letter-spacing: 1px; color: #fff; }
+    .m4s-grille-semaine th.m4s-col-auj .m4s-jour-date::after {
+      content: "AUJOURD'HUI"; display: block; width: max-content; margin: 4px auto 0; padding: 1px 8px; border-radius: 10px;
+      background: #fff; color: var(--jc); font-size: 8.5px; font-weight: 800; letter-spacing: .8px; line-height: 1.5;
+    }
+
+    /* Colonnes « résident » figées à gauche */
+    .m4s-grille-semaine .m4s-cell-fixe { position: sticky; z-index: 2; background: #fff; font-size: 13px; font-weight: 500; color: var(--texte); padding: 6px 12px; white-space: nowrap; }
+    .m4s-grille-semaine tbody tr:nth-child(even) .m4s-cell-fixe { background: #F7F9FD; }
+    .m4s-grille-semaine thead th.m4s-cell-fixe { z-index: 6; color: #fff; }
+    .m4s-grille-semaine .m4s-cell-fixe-0 { left: 0; width: 225px; min-width: 225px; max-width: 225px; overflow: hidden; text-overflow: ellipsis; }
+    .m4s-grille-semaine .m4s-cell-fixe-1 { left: 225px; width: 88px; min-width: 88px; }
+    .m4s-grille-semaine .m4s-cell-fixe-dernier { box-shadow: 8px 0 10px -8px rgba(16,41,79,.32); }
+
+    /* Cases d'un jour */
+    .m4s-grille-semaine td.m4s-cell-jour { background: color-mix(in srgb, var(--jc) 3.5%, #fff); padding: 4px 3px !important; text-align: center; }
+    .m4s-grille-semaine tbody tr:nth-child(even) td.m4s-cell-jour { background: color-mix(in srgb, var(--jc) 6.5%, #fff); }
+    .m4s-grille-semaine td.m4s-jour-debut { border-left: 2px solid color-mix(in srgb, var(--jc) 55%, #fff); }
+    .m4s-grille-semaine tbody tr:hover td.m4s-cell-jour { background: color-mix(in srgb, var(--jc) 14%, #fff); }
+    .m4s-grille-semaine tbody tr:hover td.m4s-cell-fixe { background: #E9F0FC; }
+    /* Colonne du jour : teinte plus soutenue + liserés de la couleur du jour */
+    .m4s-grille-semaine td.m4s-col-auj { background: color-mix(in srgb, var(--jc) 18%, #fff) !important; }
+    .m4s-grille-semaine td.m4s-col-auj.m4s-jour-debut { box-shadow: inset 3px 0 0 var(--jc); }
+    .m4s-grille-semaine td.m4s-col-auj.m4s-jour-fin   { box-shadow: inset -3px 0 0 var(--jc); }
+
+    /* Cases de statut : « OK » discret, exceptions vives (le regard va à l'essentiel) */
+    .m4s-grille-semaine .m4s-case { min-width: 50px; min-height: 30px; padding: 4px 2px; border-radius: 9px; font-size: 11px; letter-spacing: .2px; }
+    .m4s-grille-semaine .m4s-case:not([class*="m4s-case--"]) { background: transparent; color: #9DBEAB; border-color: transparent; font-weight: 600; }
+    .m4s-grille-semaine .m4s-case:not([class*="m4s-case--"]):hover { background: #fff; color: var(--vert); border-color: var(--vert-bord); }
+    .m4s-grille-semaine .m4s-case[class*="m4s-case--"] { box-shadow: 0 1px 3px rgba(15,23,42,.16); }
+    .m4s-grille-semaine .m4s-badge { min-width: 46px; justify-content: center; padding: 4px 6px; border-radius: 9px; font-size: 11px; border: 1px solid transparent; }
+    .m4s-grille-semaine .m4s-badge--neutre:not([class*="m4s-case--"]) { background: transparent; color: #9DBEAB; font-weight: 600; border-color: transparent; }
+    .m4s-grille-semaine .m4s-badge[class*="m4s-case--"] { box-shadow: 0 1px 3px rgba(15,23,42,.16); }
+    .m4s-grille-semaine .m4s-case-na { min-height: 30px; border-radius: 9px; background: rgba(148,163,184,.12); color: #A3B0C4; }
+
+    /* Saisie numérique (encadrants, famille) : vide = très discret, rempli = pastille de la couleur du jour */
+    .m4s-grille-semaine .m4s-case-nb {
+      width: 52px; min-width: 44px; height: 30px; padding: 2px; border-radius: 9px; font-size: 14px; font-weight: 800;
+      text-align: center; background: transparent; box-shadow: none;
+      border: 1px solid color-mix(in srgb, var(--jc) 16%, transparent); color: var(--jc);
+    }
+    .m4s-grille-semaine .m4s-case-nb::placeholder { color: color-mix(in srgb, var(--jc) 32%, transparent); font-weight: 700; }
+    .m4s-grille-semaine .m4s-case-nb:not(:placeholder-shown) {
+      background: color-mix(in srgb, var(--jc) 17%, #fff); border-color: color-mix(in srgb, var(--jc) 60%, #fff);
+      color: color-mix(in srgb, var(--jc) 78%, #000);
+    }
+    .m4s-grille-semaine .m4s-case-nb:focus { background: #fff; border-color: var(--jc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--jc) 24%, transparent); outline: none; }
+
+    /* Repères métier (Tableau de présence) : ligne du résident « mixé » surlignée
+       en bleu (même repère que « Repas animation ») ; « 1er service » en gras. */
+    .m4s-grille-semaine tbody tr.m4s-ligne--mixe td,
+    .m4s-grille-semaine tbody tr.m4s-ligne--mixe:nth-child(even) td,
+    .m4s-grille-semaine tbody tr.m4s-ligne--mixe:hover td { background: #C7DCF8 !important; }
+    .m4s-grille-semaine tbody tr.m4s-ligne--mixe .m4s-badge--neutre:not([class*="m4s-case--"]),
+    .m4s-grille-semaine tbody tr.m4s-ligne--mixe .m4s-case:not([class*="m4s-case--"]) { color: #3F7A59; }
+    /* Repas animation (tableau standard) : gastrostomie = ligne rouge, non comptée */
+    .m4s-tableau tbody tr.m4s-ligne--gastro td { background: #FCA5A5; color: #7F1D1D; }
+    /* Gastrostomie : ligne ROUGE (prioritaire sur le bleu « mixé » : rule placée après) */
+    .m4s-grille-semaine tbody tr.m4s-ligne--gastro td,
+    .m4s-grille-semaine tbody tr.m4s-ligne--gastro:nth-child(even) td,
+    .m4s-grille-semaine tbody tr.m4s-ligne--gastro:hover td { background: #FCA5A5 !important; }
+    .m4s-grille-semaine tbody tr.m4s-ligne--gastro .m4s-badge--neutre:not([class*="m4s-case--"]),
+    .m4s-grille-semaine tbody tr.m4s-ligne--gastro .m4s-case:not([class*="m4s-case--"]) { color: #7F1D1D; }
+    .m4s-grille-semaine tbody tr.m4s-ligne--gastro td.m4s-cell-fixe { color: #7F1D1D; }
+    .m4s-badge--gastro { background: #B91C1C; color: #fff; font-size: 9px; letter-spacing: .5px; padding: 1px 6px; border-radius: 6px; vertical-align: middle; }
+    /* !important : le nom du résident porte un font-weight inline (historique) */
+    .m4s-grille-semaine tbody tr.m4s-ligne--service1 td.m4s-cell-fixe { font-weight: 800 !important; color: #0B1F4B; }
+    .m4s-grille-semaine tbody tr.m4s-ligne--service1 .m4s-badge,
+    .m4s-grille-semaine tbody tr.m4s-ligne--service1 .m4s-case { font-weight: 800; }
+
+    /* Lignes de synthèse (présence) et de total (commandes) */
+    .m4s-grille-semaine tr.m4s-ligne-syn td { font-size: 14px; font-weight: 700; }
+    .m4s-grille-semaine tr.m4s-ligne-syn td.m4s-cell-fixe { background: #EEF3FC !important; color: var(--bleu) !important; font-size: 12.5px; }
+    .m4s-grille-semaine tr.m4s-ligne-syn td.m4s-cell-jour { background: color-mix(in srgb, var(--jc) 12%, #fff) !important; color: color-mix(in srgb, var(--jc) 80%, #000); }
+    .m4s-grille-semaine tr.m4s-ligne-total td {
+      background: linear-gradient(180deg, #2A4DA8, #1B3680) !important; color: #fff !important;
+      font-size: 16px; font-weight: 800; border-top: 0; border-bottom: 0;
+    }
+    .m4s-grille-semaine tr.m4s-ligne-total td.m4s-cell-fixe { background: #1B3680 !important; font-size: 12.5px; letter-spacing: .8px; text-transform: uppercase; }
+    .m4s-grille-semaine tr.m4s-ligne-total td.m4s-jour-debut { border-left: 2px solid rgba(255,255,255,.4); box-shadow: none; }
+    .m4s-grille-semaine tr.m4s-ligne-total td.m4s-col-auj { box-shadow: none !important; background: #3B63C4 !important; }
+
+    /* Page « Animations de la semaine » : une colonne par jour, service à gauche */
+    .m4s-tableau--anim { width: 100%; table-layout: fixed; }
+    .m4s-tableau--anim th.m4s-th-jour { min-width: 128px; }
+    .m4s-tableau--anim td.m4s-cell-jour { padding: 10px 8px !important; text-align: left; vertical-align: top; background: color-mix(in srgb, var(--jc) 5%, #fff) !important; }
+    .m4s-tableau--anim td.m4s-cell-fixe { font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; font-size: 12px; width: 92px; min-width: 92px; max-width: 92px; }
+    .m4s-tableau--anim tbody tr:nth-child(1) td.m4s-cell-fixe { box-shadow: inset 5px 0 0 #FBBF24; }
+    .m4s-tableau--anim tbody tr:nth-child(2) td.m4s-cell-fixe { box-shadow: inset 5px 0 0 #6366F1; }
+    .m4s-tableau--anim td.m4s-cell-jour.m4s-col-auj { background: color-mix(in srgb, var(--jc) 14%, #fff) !important; }
+    .m4s-tableau--anim .m4s-case--animation { border-radius: 10px; }
+    /* Rectangles d'animation : couleur pleine selon la nature du repas (= feuille « Repas animation ») */
+    .m4s-tableau--anim .m4s-anim--midi  { background: var(--bleu);     border-color: var(--bleu);     color: #fff; }
+    .m4s-tableau--anim .m4s-anim--pique { background: var(--vert);     border-color: var(--vert);     color: #fff; }
+    .m4s-tableau--anim .m4s-anim--soir  { background: var(--tdb-soir); border-color: var(--tdb-soir); color: #fff; }
+    .m4s-tableau--anim [class*="m4s-anim--"] { font-size: 12px; box-shadow: 0 2px 6px rgba(15,23,42,.28); }
+    .m4s-tableau--anim [class*="m4s-anim--"] .m4s-btn { background: rgba(255,255,255,.92); border-color: transparent; color: var(--texte-doux); }
+    .m4s-tableau--anim [class*="m4s-anim--"]:hover { filter: brightness(1.08); }
+
+    /* ==================================================================
+       [SEC-2.4c] PRODUCTION CUISINE — feuille lisible de loin
+       UNE feuille = UN jour : MIDI et SOIR côte à côte. Ces règles servent
+       à l'écran ET à la fenêtre d'impression (recopiées par la fonction
+       cssProduction) : couleurs en HEXADÉCIMAL, aucune variable du thème.
+       Réglages : palette dans .m4s-prod ; tailles en « em » (tout se met à
+       l'échelle avec le font-size de .m4s-prod).
+       Préfixe .m4s-prodpage = habillage ÉCRAN seulement (non recopié).
+       ================================================================== */
+    .m4s-prod { --p-midi: #1E3A8A; --p-soir: #B12A6B; --p-pique: #15803D; --p-mixe: #A9C8F2; --p-mixe-txt: #0B2A63;
+                --p-trait: #CBD5E1; font-size: 16px; color: #0F172A; }
+    .m4s-prod__cols { display: grid; grid-template-columns: 1fr 1fr; gap: .9em; }
+    .m4s-prod__svc { --c: var(--p-midi); border: .14em solid var(--c); border-radius: 1em; overflow: hidden; background: #fff;
+                     display: flex; flex-direction: column; min-width: 0; }
+    .m4s-prod__svc--midi { --c: var(--p-midi); }
+    .m4s-prod__svc--soir { --c: var(--p-soir); }
+    .m4s-prod__tete { background: var(--c); color: #fff; display: flex; align-items: baseline; justify-content: space-between; padding: .3em .8em; }
+    .m4s-prod__svc-nom { font-size: 2.3em; font-weight: 900; letter-spacing: .06em; line-height: 1.1; }
+    .m4s-prod__svc-eff { font-size: 1.1em; font-weight: 700; }
+    .m4s-prod__svc-eff b { font-size: 1.9em; font-weight: 900; margin-right: .15em; }
+    .m4s-prod__vide { padding: .5em .8em; color: #64748B; font-style: italic; }
+
+    /* Le GROS : quantités à produire */
+    .m4s-prod__gros { padding: .5em .7em .3em; }
+    .m4s-prod__totaux { width: 100%; border-collapse: separate; border-spacing: .3em; table-layout: fixed; }
+    .m4s-prod__totaux thead th { font-size: .95em; font-weight: 800; letter-spacing: .12em; color: #475569; padding: 0 0 .1em; text-align: center; }
+    .m4s-prod__totaux thead th.mx { color: var(--p-mixe-txt); }
+    .m4s-prod__totaux tbody th { width: 28%; text-align: left; font-size: 1.15em; font-weight: 900; letter-spacing: .04em; color: var(--c); padding-left: .2em; }
+    .m4s-prod__totaux tbody td { font-size: 3.3em; font-weight: 900; line-height: 1.02; text-align: center; padding: .04em 0;
+                                 background: #F1F5F9; border-radius: .18em; color: #0F172A; font-variant-numeric: tabular-nums; }
+    .m4s-prod__totaux tbody td.mx { background: var(--p-mixe); color: var(--p-mixe-txt); }
+    .m4s-prod__zero { opacity: .3; }
+
+    /* Le détail par groupe (plus petit) */
+    .m4s-prod__detail { padding: .2em .7em .5em; font-size: 1.05em; }
+    .m4s-prod__det { width: 100%; border-collapse: collapse; }
+    .m4s-prod__det th, .m4s-prod__det td { padding: .2em .35em; text-align: right; border-bottom: 1px solid var(--p-trait); font-variant-numeric: tabular-nums; }
+    .m4s-prod__det thead th { font-size: .8em; font-weight: 800; letter-spacing: .06em; color: #475569; background: #F8FAFC; text-align: center; }
+    .m4s-prod__det thead th.l, .m4s-prod__det th.l { text-align: left; }
+    .m4s-prod__det th.l { font-weight: 600; }
+    .m4s-prod__det .mx { background: #E6EFFC; }
+    .m4s-prod__det thead th.mx { color: var(--p-mixe-txt); }
+    .m4s-prod__det tr.sec td { text-align: left; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; font-size: .85em; color: var(--c); border-bottom: 0; padding-top: .5em; }
+    .m4s-prod__det tr.tot th, .m4s-prod__det tr.tot td { font-weight: 800; background: #EEF2F7; border-top: 1px solid #94A3B8; }
+    .m4s-prod__det tr.tot td.mx { background: #D5E4FA; }
+    .m4s-prod__det tr.temoin th, .m4s-prod__det tr.temoin td { color: #475569; font-style: italic; }
+    .m4s-prod__det tr.total th, .m4s-prod__det tr.total td { font-size: 1.1em; background: #E2E8F0; border-top: 2px solid #475569; }
+    .m4s-prod__det tr.total td.mx { background: #BCD3F6; }
+    .m4s-prod__det small { font-weight: 600; color: #475569; }
+    .m4s-prod__chip { display: inline-block; padding: .03em .6em; border-radius: 1em; color: #fff; font-weight: 800; background: var(--p-midi); }
+    .m4s-prod__chip--midi  { background: var(--p-midi); }
+    .m4s-prod__chip--pique { background: var(--p-pique); }
+    .m4s-prod__chip--soir  { background: var(--p-soir); }
+
+    .m4s-prod__pied { margin-top: auto; display: flex; flex-wrap: wrap; align-items: baseline; gap: .3em 1.4em; padding: .45em .8em;
+                      background: #F1F5F9; border-top: 1px solid var(--p-trait); font-size: 1.05em; font-weight: 700; }
+    .m4s-prod__pied b { font-size: 1.5em; font-weight: 900; margin-left: .15em; }
+    .m4s-prod__note { font-size: .7em; font-weight: 400; color: #64748B; }
+    .m4s-prod__absents { margin-top: .6em; font-size: .8em; color: #475569; line-height: 1.4; }
+
+    /* Habillage écran (non recopié à l'impression) */
+    .m4s-prodpage { background: #fff; border: 1px solid var(--bordure); border-radius: var(--ds-rayon-carte); padding: 16px; box-shadow: var(--ombre-sm); }
+    .m4s-prodpage__jour { margin: 18px 0 10px; font-size: 26px; font-weight: 900; letter-spacing: -.3px; text-transform: capitalize; }
+    @media (max-width: 1100px) { .m4s-prod__cols { grid-template-columns: 1fr; } }
+
+
     /* Ligne d'article du panier « Dotations » */
     .m4s-ligne-dotation {
       display: flex; align-items: center; gap: var(--espace-4);
@@ -307,10 +547,10 @@
       background: var(--vert-fond); color: var(--vert); border-color: var(--vert-bord);
     }
     .m4s-case:hover { filter: brightness(.97); }
-    .m4s-case--animation  { background: var(--ambre-fond);    color: var(--ambre);    border-color: var(--ambre-bord); }
-    .m4s-case--sortie     { background: var(--rouge-fond);    color: var(--rouge);    border-color: var(--rouge-bord); }
-    .m4s-case--invitation { background: var(--sarcelle-fond); color: var(--sarcelle); border-color: var(--sarcelle-bord); }
-    .m4s-case--autre      { background: var(--violet-fond);   color: var(--violet);   border-color: var(--violet-bord); }
+    .m4s-case--animation  { background: #FFEDD5; color: #C2410C; border-color: #FDBA74; font-weight: 800; }
+    .m4s-case--sortie     { background: #FEE2E2; color: #B91C1C; border-color: #FCA5A5; font-weight: 800; }
+    .m4s-case--invitation { background: #CFFAFE; color: #0E7490; border-color: #67E8F9; font-weight: 800; }
+    .m4s-case--autre      { background: #EDE9FE; color: #6D28D9; border-color: #C4B5FD; font-weight: 800; }
 
     /* Case « service non applicable » (ex. soir de l'accueil de jour) :
        cellule neutre, non cliquable, affichant « — ». Voir serviceApplicable(). */
@@ -340,7 +580,7 @@
 
     /* Modale */
     .m4s-modale-fond { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.4); backdrop-filter: blur(4px); display: flex; align-items: flex-start; justify-content: center; padding: var(--espace-4); overflow-y: auto; }
-    .m4s-modale { background: var(--surface); border: 1px solid var(--bordure); border-radius: 16px; width: 100%; max-width: 640px; box-shadow: 0 20px 60px rgba(0,0,0,.2); margin-top: var(--espace-5); animation: m4s-modale-entree var(--duree-moyenne) ease; }
+    .m4s-modale { background: var(--surface); border: 1px solid var(--bordure); border-radius: 18px; width: 100%; max-width: 640px; box-shadow: 0 20px 70px rgba(16,41,79,.28); margin-top: var(--espace-5); animation: m4s-modale-entree var(--duree-moyenne) ease; }
     .m4s-modale__entete { padding: 20px 24px; border-bottom: 1px solid var(--bordure); display: flex; justify-content: space-between; align-items: center; }
     .m4s-modale__entete h3 { font-size: 18px; font-weight: 700; }
     .m4s-modale__fermer { width: 32px; height: 32px; border-radius: var(--rayon); background: var(--fond); border: 0; color: var(--texte-doux); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
@@ -404,7 +644,7 @@
     .m4s-placeholder strong { color: var(--texte); }
 
     .m4s-toasts { position: fixed; right: var(--espace-5); bottom: var(--espace-5); z-index: 300; display: flex; flex-direction: column; gap: var(--espace-2); }
-    .m4s-toast { background: var(--surface); border: 1px solid var(--bordure); border-left: 4px solid var(--bleu); color: var(--texte); padding: 12px 16px; border-radius: var(--rayon); box-shadow: var(--ombre-md); font-size: var(--taille-md); font-weight: 500; max-width: 320px; animation: m4s-apparition var(--duree-courte) ease; }
+    .m4s-toast { background: var(--surface); border: 1px solid var(--bordure); border-left: 4px solid var(--bleu); color: var(--texte); padding: 12px 16px; border-radius: 12px; box-shadow: var(--ombre-md); font-size: var(--taille-md); font-weight: 500; max-width: 320px; animation: m4s-apparition var(--duree-courte) ease; }
     .m4s-toast--succes { border-left-color: var(--vert); }
     .m4s-toast--erreur { border-left-color: var(--rouge); }
 
@@ -432,7 +672,20 @@
     @media print {
       .m4s-sidebar, .m4s-no-print, .m4s-toasts { display: none !important; }
       .m4s-app, .m4s-main, .m4s-vues { display: block !important; height: auto !important; overflow: visible !important; padding: 0 !important; }
-      .m4s-carte { box-shadow: none !important; border: 1px solid #999 !important; break-inside: avoid; }
+      .m4s-carte { box-shadow: none !important; border: 1px solid #999 !important; break-inside: avoid; background: #FFF !important; }
+      .m4s-tableau th { background: #FFF !important; color: #000 !important; border-bottom: 1px solid #999 !important; }
+      /* Sans cette consigne, le navigateur n'imprime pas les fonds colorés :
+         les mixés et les en-têtes colorés de « Repas animation » disparaîtraient. */
+      .m4s-vue-titre--anim-midi, .m4s-vue-titre--pique, .m4s-vue-titre--anim-soir,
+      .m4s-ligne--mixe td, .m4s-puce-mixe, .m4s-legende-anim i { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .m4s-tableau tbody tr.m4s-ligne--mixe td { background: #A9C8F2 !important; font-weight: 700; }
+      .m4s-puce-mixe { background: #A9C8F2 !important; }
+      /* Grilles « semaine » : en-têtes et totaux en clair pour rester lisibles sur papier */
+      .m4s-grille-semaine th.m4s-th-jour, .m4s-grille-semaine thead th:not(.m4s-th-jour) { background: #FFF !important; color: #000 !important; }
+      .m4s-grille-semaine .m4s-jour-nom, .m4s-grille-semaine .m4s-jour-date, .m4s-grille-semaine .m4s-services span { color: #000 !important; background: none !important; }
+      .m4s-grille-semaine tr.m4s-ligne-total td { background: #E5E7EB !important; color: #000 !important; }
+      .m4s-grille-semaine .m4s-cell-fixe { position: static !important; }
+      .m4s-grille-semaine { width: 100% !important; }
       body { background: #FFF !important; }
     }
     /* -------------------------------------------------------------------
@@ -441,20 +694,63 @@
        Tout se regle via les jetons [SEC-2.1] ; couleurs/espacements ici.
        ------------------------------------------------------------------- */
     .m4s-tdb { display: flex; flex-direction: column; gap: var(--espace-4); }
+
+    /* Bandeau d'accueil — décor purement CSS (dégradé), aucune photo ni
+       logo inventé. Titre + date + semaine viennent de données réelles. */
+    .m4s-tdb-bandeau {
+      display: flex; align-items: center; justify-content: space-between; gap: var(--espace-5);
+      background: linear-gradient(120deg, var(--surface), var(--bleu-fond));
+      border: 1px solid var(--bordure); border-radius: var(--rayon-lg);
+      padding: 22px 26px; margin-bottom: var(--espace-4);
+    }
+    .m4s-tdb-bandeau__texte h1 { font-size: 26px; font-weight: 800; letter-spacing: -.5px; line-height: 1.15; }
+    .m4s-tdb-bandeau__texte .m4s-tdb-bandeau__jour { font-size: var(--taille-md); color: var(--bleu); font-weight: 700; margin-top: 6px; }
+    .m4s-tdb-bandeau__texte .m4s-tdb-bandeau__sem  { font-size: var(--taille-sm); color: var(--texte-doux); margin-top: 3px; }
+    .m4s-tdb-bandeau__deco {
+      width: 96px; height: 76px; flex-shrink: 0; border-radius: var(--rayon);
+      background: linear-gradient(135deg, var(--vert-fond), var(--bleu-fond));
+      display: flex; align-items: center; justify-content: center; color: var(--bleu-bord);
+    }
+    @media (max-width: 640px) { .m4s-tdb-bandeau__deco { display: none; } }
+
+    /* Raccourcis métier — un lien par module réel du menu (aucun module
+       inventé pour remplir une case). Couleur = catégorie fonctionnelle,
+       jamais un état de conformité (voir 00_Architecture.md / doc kit 02.A). */
+    .m4s-tdb-racc { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: var(--espace-4); }
+    .m4s-tdb-racc-item {
+      display: flex; align-items: center; gap: 10px; min-height: 72px;
+      padding: 12px 14px; border-radius: var(--rayon-lg); border: 1px solid var(--tint-bord);
+      background: linear-gradient(120deg, var(--tint), var(--tint)); color: var(--tint-txt);
+      font-weight: 650; font-size: 13px; text-align: left; cursor: pointer; transition: all var(--transition);
+    }
+    .m4s-tdb-racc-item:hover { filter: brightness(.97); transform: translateY(-1px); }
+    .m4s-tdb-racc-item svg { width: 26px; height: 26px; flex-shrink: 0; }
+    .m4s-tdb-racc-item .m4s-tdb-racc-fleche { margin-left: auto; font-size: 18px; opacity: .55; }
+    .m4s-tdb-racc--vert   { --tint: var(--vert-fond);   --tint-bord: var(--vert-bord);   --tint-txt: var(--vert); }
+    .m4s-tdb-racc--rouge  { --tint: var(--rouge-fond);  --tint-bord: var(--rouge-bord);  --tint-txt: var(--rouge); }
+    .m4s-tdb-racc--bleu   { --tint: var(--bleu-fond);   --tint-bord: var(--bleu-bord);   --tint-txt: var(--bleu); }
+    .m4s-tdb-racc--violet { --tint: var(--violet-fond); --tint-bord: var(--violet-bord); --tint-txt: var(--violet); }
+    .m4s-tdb-racc--ambre  { --tint: var(--ambre-fond);  --tint-bord: var(--ambre-bord);  --tint-txt: var(--ambre); }
+    .m4s-tdb-racc--slate  { --tint: var(--ds-slate-fond); --tint-bord: var(--ds-slate-bord); --tint-txt: var(--ds-slate); }
+
     .m4s-tdb-grille { display: grid; gap: var(--espace-4); align-items: start; }
     .m4s-tdb-grille--2 { grid-template-columns: 2fr 1fr; }
     .m4s-tdb-grille--tiles { grid-template-columns: 1fr 1fr; }
     @media (max-width: 1100px) { .m4s-tdb-grille--2, .m4s-tdb-grille--tiles { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 640px) { .m4s-tdb-grille--2, .m4s-tdb-grille--tiles { grid-template-columns: 1fr; } }
 
-    .m4s-tdb-carte { background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon-lg); box-shadow: var(--ombre-sm); overflow: hidden; }
-    .m4s-tdb-carte__tete { display: flex; align-items: center; gap: var(--espace-2); padding: 13px 18px; border-bottom: 1px solid var(--bordure); }
-    .m4s-tdb-carte__tete h2 { font-size: var(--taille-md); font-weight: 700; }
+    .m4s-tdb-carte { background: var(--ds-degrade-carte); border: 1px solid var(--bordure); border-radius: var(--ds-rayon-carte); box-shadow: var(--ombre-sm); overflow: hidden; }
+    .m4s-tdb-carte__tete { display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--bordure); }
+    .m4s-tdb-carte__tete h2 { font-size: 17px; font-weight: 700; letter-spacing: -.3px; }
     .m4s-tdb-compte { margin-left: auto; font-size: var(--taille-xs); color: var(--texte-tres-doux); font-weight: 600; }
+    /* Modificateur réservé à un VRAI compteur d'éléments (ex. « À traiter »),
+       jamais à un simple libellé contextuel (ex. « aujourd'hui ») — distinction
+       conservée volontairement pour ne pas laisser croire à une alerte. */
+    .m4s-tdb-compte--alerte { color: #fff; font-weight: 700; background: var(--rouge); border-radius: 8px; min-width: 22px; text-align: center; padding: 2px 7px; }
     .m4s-tdb-svg { color: var(--texte-doux); flex-shrink: 0; }
 
     /* Hero « a produire » */
-    .m4s-tdb-prod { background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon-lg); box-shadow: var(--ombre); overflow: hidden; }
+    .m4s-tdb-prod { background: var(--ds-degrade-carte); border: 1px solid var(--bordure); border-radius: var(--ds-rayon-carte); box-shadow: var(--ombre); overflow: hidden; }
     .m4s-tdb-prod__services { display: grid; grid-template-columns: 1fr 1fr; }
     .m4s-tdb-service { padding: 18px 20px; }
     .m4s-tdb-service + .m4s-tdb-service { border-left: 1px solid var(--bordure); }
@@ -483,8 +779,8 @@
     .m4s-tdb-chip b { color: var(--texte); font-weight: 700; }
 
     /* Tuiles indicateurs */
-    .m4s-tdb-stat { background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 15px 16px; box-shadow: var(--ombre-sm); }
-    .m4s-tdb-stat__ic { width: 34px; height: 34px; border-radius: 9px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; }
+    .m4s-tdb-stat { background: var(--ds-degrade-carte); border: 1px solid var(--bordure); border-radius: var(--rayon-lg); padding: 15px 16px; box-shadow: var(--ombre-sm); }
+    .m4s-tdb-stat__ic { width: 35px; height: 35px; border-radius: 50%; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; }
     .m4s-tdb-i-bleu { background: var(--bleu-fond); color: var(--bleu); }
     .m4s-tdb-i-vert { background: var(--vert-fond); color: var(--vert); }
     .m4s-tdb-i-sarc { background: var(--sarcelle-fond); color: var(--sarcelle); }
@@ -502,6 +798,26 @@
     .m4s-tdb-lvl-bleu { background: var(--bleu-fond); color: var(--bleu); }
     .m4s-tdb-attn__tx b { display: block; font-weight: 600; font-size: var(--taille-sm); color: var(--texte); }
     .m4s-tdb-attn__tx span { font-size: var(--taille-xs); color: var(--texte-doux); }
+    /* Anniversaires : bannière (aujourd'hui) + carte des jours à venir */
+    .m4s-tdb-anniv-banniere { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: var(--ds-rayon-carte);
+      border: 1px solid #F9A8D4; background: linear-gradient(120deg, #FFF1F8, #FDE7F3); color: #831843; box-shadow: var(--ombre-sm); }
+    .m4s-tdb-anniv-banniere__ic { width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; background: #DB2777; color: #fff;
+      display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(219,39,119,.35); }
+    .m4s-tdb-anniv-banniere__tx { font-size: var(--taille-md); line-height: 1.5; }
+    .m4s-tdb-anniv-banniere__tx b { color: #9D174D; font-weight: 800; }
+    .m4s-tdb-anniv { display: flex; align-items: center; gap: 12px; padding: 10px 18px; border-bottom: 1px solid var(--bordure); }
+    .m4s-tdb-anniv:last-of-type { border-bottom: 0; }
+    .m4s-tdb-anniv--auj { background: #FFF1F8; }
+    .m4s-tdb-anniv__date { width: 46px; flex-shrink: 0; text-align: center; line-height: 1.1; padding: 4px 0; border-radius: 10px;
+      background: #FDF2F8; border: 1px solid #FBCFE8; color: #BE185D; }
+    .m4s-tdb-anniv__date b { display: block; font-size: 17px; font-weight: 800; }
+    .m4s-tdb-anniv__date span { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; }
+    .m4s-tdb-anniv__tx { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .m4s-tdb-anniv__tx b { font-size: var(--taille-md); font-weight: 700; }
+    .m4s-tdb-anniv__tx span { font-size: 12px; color: var(--texte-doux); }
+    .m4s-tdb-anniv__quand { font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 20px; white-space: nowrap; background: var(--fond); color: var(--texte-doux); }
+    .m4s-tdb-anniv--auj .m4s-tdb-anniv__quand { background: #DB2777; color: #fff; }
+    .m4s-tdb-anniv-note { padding: 8px 18px 12px; font-size: 11px; color: var(--texte-tres-doux); }
     .m4s-tdb-vide { padding: 22px 18px; color: var(--texte-tres-doux); font-size: var(--taille-sm); text-align: center; }
 
     /* La journee */
@@ -717,7 +1033,7 @@
      La clé « anon » est publique par conception (voir architecture §3.4).
      ------------------------------------------------------------------- */
   const CONFIG = {
-    version: "M4S v0.23.1",
+    version: "M4S v0.36.2",
     schemaVersion: 1,
     supabase: {
       url:     "https://fbuernmjzqytyfltbktw.supabase.co",
@@ -751,6 +1067,7 @@
     { cle: "cmd-residents",     titre: "Commande repas résidents", pole: "A", afficher: vueCommandeResidents },
     { cle: "cmd-encadrants",    titre: "Commande repas encadrants", pole: "A", afficher: vueCommandeEncadrants },
     { cle: "cmd-familles",      titre: "Commande repas famille",    pole: "A", afficher: vueCommandeFamilles },
+    { cle: "cmd-cuisine-bureau", titre: "Commande cuisine et bureau", pole: "A", afficher: vueCommandeCuisineBureau },
     { cle: "dotations",         titre: "Petit-déjeuner, goûter & dotations", pole: "A", afficher: vueDotations },
 
     { cle: "tableau-presence",  titre: "Tableau de présence",       pole: "B", afficher: vueTableauPresence },
@@ -804,6 +1121,27 @@
      Rappel : en base, « absence de ligne = présent ». Sans cette règle, les
      résidents ADJ seraient comptés présents le soir par défaut.          */
   const GROUPE_ADJ = "ADJ";
+  /* ----- RÈGLE MÉTIER : repas du personnel CUISINE et BUREAU -----
+     Ces repas sont gérés directement par la cuisine (onglet « Commande cuisine
+     et bureau »), pas par les groupes. Ils sont stockés dans la table existante
+     commandes_encadrants (aucune table ajoutée), avec les catégories « CUISINE »
+     et « BUREAU » déjà présentes dans « Catégories d'encadrants », et le groupe
+     technique « anim » (« Cuisine animation »), qui n'est jamais un onglet de
+     groupe. Dans Production cuisine ils comptent en 2e service, texture normale. */
+  const GROUPE_CUISINE_BUREAU = "anim";
+  function typeCuisineBureau(cat) {          // "cuisine" | "bureau" | null
+    const l = String(cat?.libelle || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+    return (l === "cuisine" || l === "bureau") ? l : null;
+  }
+
+  /* ----- RÈGLE MÉTIER CENTRALISÉE : résident non compté (gastrostomie) -----
+     Un résident en GASTROSTOMIE n'est JAMAIS compté dans les repas ni dans les
+     effectifs (tableau de présence, production cuisine, tableau de bord,
+     repas animation) — décision de Nico. Il reste VISIBLE (ligne rouge) dans
+     les listes, mais n'entre dans aucun total. Les familles/encadrants liés à
+     son groupe ou à sa visite sont, eux, comptés normalement. */
+  function estCompte(r) { return !r.gastrostomie; }
+
   function serviceApplicable(groupeCode, service) {
     if (groupeCode === GROUPE_ADJ && service === "soir") return false;
     return true;
@@ -2684,6 +3022,108 @@
      organisés + le nombre de repas « personnel ».
      Ce paramétrage FILTRE ensuite les choix de la grille de commande.
      ==================================================================== */
+  /* Anniversaires à venir (fonction pure : aucune écriture, aucune requête).
+     Lit seulement `date_naissance` (AAAA-MM-JJ) des fiches résidents déjà
+     chargées. « Dans N jours » se calcule sur la DATE LOCALE (sans heure), donc
+     sans décalage de fuseau/heure d'été. Un 29 février est fêté le 28 février
+     les années non bissextiles. Renvoie aussi le nombre de fiches SANS date,
+     pour ne jamais présenter « aucun anniversaire » quand la donnée manque. */
+  function prochainsAnniversaires(residents, horizonJours) {
+    const now = new Date();
+    const auj = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    const bissextile = a => (a % 4 === 0 && a % 100 !== 0) || a % 400 === 0;
+    const liste = []; let sansDate = 0;
+    residents.forEach(r => {
+      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(r.date_naissance || ""));
+      if (!m) { sansDate++; return; }
+      const an = +m[1], mo = +m[2] - 1, jo = +m[3];
+      const occurrence = a => Date.UTC(a, mo, (mo === 1 && jo === 29 && !bissextile(a)) ? 28 : jo);
+      let annee = now.getFullYear(), t = occurrence(annee);
+      if (t < auj) { annee += 1; t = occurrence(annee); }        // déjà passé cette année → l'an prochain
+      const dans = Math.round((t - auj) / 86400000);
+      if (dans <= horizonJours) liste.push({ resident: r, dans, age: annee - an, jour: new Date(t).getUTCDate(), mois: new Date(t).getUTCMonth() });
+    });
+    liste.sort((a, b) => a.dans - b.dans || String(a.resident.nom_prenom || "").localeCompare(String(b.resident.nom_prenom || ""), "fr"));
+    return { liste, sansDate, avecDate: residents.length - sansDate };
+  }
+
+  /* Nature d'un repas d'animation → code couleur commun aux écrans
+     « Repas animation » et « Repas animations et spéciaux de la semaine » :
+     pique-nique (libellé contenant « pique » ou code « PicNic… ») = vert ;
+     sinon service du soir = fuchsia ; sinon (midi) = bleu. */
+  function natureRepasAnimation(typeCode, libelle, service) {
+    const l = String(libelle || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    if (l.includes("pique") || String(typeCode || "").toLowerCase().startsWith("picnic")) return "pique";
+    return service === "soir" ? "soir" : "midi";
+  }
+
+  /* -------------------------------------------------------------------
+     [SEC-4.x] HABILLAGE DES GRILLES « SEMAINE »
+     Appelée APRÈS la construction d'un tableau jour × midi/soir (présence,
+     commandes résidents / encadrants / famille, animations de la semaine).
+     Elle ne fait qu'ajouter des classes, la couleur du jour (--jc) et
+     un découpage nom/date dans l'en-tête : AUCUN calcul, événement ni
+     donnée n'est touché. Les styles vivent dans [SEC-2.4b].
+       table          : le <table> déjà construit
+       jours          : U.joursDeLaSemaine(semaine)
+       casesParJour   : 2 (midi + soir) ou 1 (une seule colonne par jour)
+     ------------------------------------------------------------------- */
+  function habillerGrilleSemaine(table, jours, casesParJour = 2) {
+    try {
+      const nJ = jours.length, nC = nJ * casesParJour;
+      const now = new Date(), pz = n => String(n).padStart(2, "0");
+      const aujourdhui = `${now.getFullYear()}-${pz(now.getMonth() + 1)}-${pz(now.getDate())}`;
+      const couleur = i => `var(--jc-${i + 1})`;
+
+      table.classList.add("m4s-grille-semaine");
+
+      // En-têtes de jour : couleur du jour, nom + date séparés, repère « aujourd'hui »
+      [...table.querySelectorAll("thead th.m4s-th-jour")].forEach((th, i) => {
+        const j = jours[i]; if (!j) return;
+        th.removeAttribute("style");
+        th.style.setProperty("--jc", couleur(i));
+        if (j.date === aujourdhui) th.classList.add("m4s-col-auj");
+        const nom = th.querySelector(".m4s-jour-nom");
+        if (nom) {
+          const [n, d] = nom.textContent.trim().split(/\s+/);
+          nom.removeAttribute("style"); nom.textContent = n;
+          if (d) { const dt = document.createElement("div"); dt.className = "m4s-jour-date"; dt.textContent = d; nom.after(dt); }
+        }
+      });
+
+      // Lignes : colonnes fixes à gauche (figées) + cases de chaque jour
+      table.querySelectorAll("tr").forEach(tr => {
+        const cells = [...tr.children];
+        // On raisonne en COLONNES (un <th> de jour couvre 2 colonnes : colspan)
+        const total = cells.reduce((n, c) => n + (c.colSpan || 1), 0);
+        const nFixes = total - nC;
+        if (nFixes < 0) return;
+        let col = 0;
+        cells.forEach(c => {
+          const debut = col; col += (c.colSpan || 1);
+          if (debut < nFixes) {
+            c.classList.add("m4s-cell-fixe", `m4s-cell-fixe-${debut}`);
+            if (col >= nFixes) c.classList.add("m4s-cell-fixe-dernier");
+            return;
+          }
+          if (c.tagName !== "TD") return;          // les <th> de jour sont traités plus haut
+          const k = debut;
+          const iJour = Math.floor((k - nFixes) / casesParJour), pos = (k - nFixes) % casesParJour;
+          c.style.setProperty("--jc", couleur(iJour));
+          c.classList.add("m4s-cell-jour");
+          if (pos === 0) c.classList.add("m4s-jour-debut");
+          if (pos === casesParJour - 1) c.classList.add("m4s-jour-fin");
+          if (jours[iJour]?.date === aujourdhui) c.classList.add("m4s-col-auj");
+          // Teintes inline historiques → remplacées par le CSS ([SEC-2.4b])
+          c.style.background = ""; c.style.borderLeft = "";
+        });
+      });
+
+      // Saisies numériques : « · » en filigrane quand la case est vide
+      table.querySelectorAll("input.m4s-case-nb").forEach(inp => { inp.placeholder = "·"; });
+    } catch (e) { /* habillage purement visuel : ne jamais bloquer l'écran */ }
+  }
+
   async function vueAnimationsSemaine(conteneur, module) {
     conteneur.innerHTML = "";
     const semaine = ETAT.semaineActive;
@@ -2752,6 +3192,14 @@
         U.el("span", { class: "m4s-compteur" }, `${etat.animations.length} animation(s) programmée(s)`),
       ));
 
+      // Légende des couleurs (mêmes codes que la feuille « Repas animation »)
+      const legende = U.el("div", { class: "m4s-legende-anim", style: "padding-top:12px;padding-bottom:4px" });
+      [["var(--bleu)", "Animation du midi"], ["var(--vert)", "Pique-nique"], ["var(--tdb-soir)", "Repas animation du soir"]].forEach(([coul, lib]) => {
+        const puce = U.el("i", {}); puce.style.background = coul;
+        legende.append(U.el("span", {}, puce, lib));
+      });
+      carte.append(legende);
+
       const cadre = U.el("div", { class: "m4s-tableau-cadre" });
       const COULEURS = ["var(--lundi)", "var(--mardi)", "var(--mercredi)", "var(--jeudi)",
                         "var(--vendredi)", "var(--samedi)", "var(--dimanche)"];
@@ -2799,7 +3247,7 @@
             if (a.nb_repas_pers) details.push(`${a.nb_repas_pers} encadrant(s)`);
 
             const vignette = U.el("div", {
-              class: "m4s-case m4s-case--animation",
+              class: "m4s-case m4s-case--animation m4s-anim--" + natureRepasAnimation(a.type_code, t?.libelle, service),
               style: "display:flex;align-items:flex-start;gap:6px;text-align:left;padding:6px 8px;cursor:pointer",
               title: "Cliquer pour modifier",
               onclick: () => ouvrirModaleAnimation({
@@ -2835,7 +3283,9 @@
         tbody.append(tr);
       });
 
-      cadre.append(U.el("table", { class: "m4s-tableau" }, U.el("thead", {}, trEntete), tbody));
+      const tabAnim = U.el("table", { class: "m4s-tableau m4s-tableau--anim" }, U.el("thead", {}, trEntete), tbody);
+      habillerGrilleSemaine(tabAnim, jours, 1);
+      cadre.append(tabAnim);
       carte.append(cadre);
       zone.append(carte);
     }
@@ -3087,7 +3537,9 @@
       });
       tbody.append(trT);
 
-      cadre.append(U.el("table", { class: "m4s-tableau m4s-tableau--encadrants" }, U.el("thead", {}, trE), tbody));
+      const tabGrille = U.el("table", { class: "m4s-tableau m4s-tableau--encadrants" }, U.el("thead", {}, trE), tbody);
+      habillerGrilleSemaine(tabGrille, jours);
+      cadre.append(tabGrille);
       carte.append(cadre);
       if (!liste.length) carte.append(U.el("p", { class: "m4s-placeholder" }, "Aucun résident ne correspond."));
       zone.append(carte);
@@ -3471,6 +3923,9 @@
       return;
     }
 
+    // CUISINE et BUREAU ont leur propre onglet (« Commande cuisine et bureau »)
+    categories = categories.filter(c => !typeCuisineBureau(c));
+
     // Groupes concernés : ceux qui accueillent des résidents (G1..G4, ADJ)
     const groupesSaisie = groupesHabites(groupes, residents).filter(g => g.code !== "AT");
     if (!ETAT.groupeEncadrants || !groupesSaisie.some(g => g.code === ETAT.groupeEncadrants)) {
@@ -3576,7 +4031,9 @@
       });
       tbody.append(trT);
 
-      cadre.append(U.el("table", { class: "m4s-tableau m4s-tableau--encadrants" }, U.el("thead", {}, trE), tbody));
+      const tabGrille = U.el("table", { class: "m4s-tableau m4s-tableau--encadrants" }, U.el("thead", {}, trE), tbody);
+      habillerGrilleSemaine(tabGrille, jours);
+      cadre.append(tabGrille);
       carte.append(cadre);
       zone.append(carte);
 
@@ -3585,6 +4042,131 @@
     }
 
     dessiner();
+  }
+
+  /* ===== [A4] COMMANDE CUISINE ET BUREAU =============================
+     Repas du personnel de la CUISINE et du BUREAU, gérés directement par la
+     cuisine (et non par les groupes). Saisie de QUANTITÉS : 2 lignes
+     (CUISINE, BUREAU) × 7 jours × midi/soir. Dès qu'un nombre est saisi, la
+     ligne apparaît automatiquement dans Production cuisine (2e service,
+     texture normale, comme une animation). Stockage : voir
+     GROUPE_CUISINE_BUREAU (table commandes_encadrants, rien de nouveau).
+     ==================================================================== */
+  async function vueCommandeCuisineBureau(conteneur, module) {
+    conteneur.innerHTML = "";
+    const semaine = ETAT.semaineActive;
+
+    conteneur.append(U.el("div", { class: "m4s-page-titre" },
+      U.el("div", {},
+        U.el("h1", {}, "Commande — Cuisine et bureau"),
+        U.el("div", { class: "m4s-sous" },
+          semaine ? `S${semaine.numero} — ${semaine.annee} · du ${U.dateFR(semaine.dateDebut)} au ${U.dateFR(semaine.dateFin)}` : "")),
+    ));
+
+    const zone = U.el("div");
+    conteneur.append(zone);
+    zone.append(U.el("div", { class: "m4s-carte" }, U.el("p", { class: "m4s-placeholder" }, "Chargement…")));
+    if (!semaine) return;
+
+    let categories, etat;
+    try {
+      [categories, etat] = await Promise.all([
+        PERSISTANCE.chargerCategoriesEncadrants(),
+        PERSISTANCE.chargerCommandesEncadrants(semaine),
+      ]);
+    } catch (e) {
+      zone.innerHTML = "";
+      zone.append(U.el("div", { class: "m4s-carte" }, U.el("p", { class: "m4s-placeholder" }, "Impossible de charger : " + e.message)));
+      return;
+    }
+
+    // Les deux postes (catégories déjà en base), dans l'ordre CUISINE puis BUREAU
+    const postes = ["cuisine", "bureau"].map(k => categories.find(c => typeCuisineBureau(c) === k)).filter(Boolean);
+    if (postes.length < 2) {
+      zone.innerHTML = "";
+      zone.append(U.el("div", { class: "m4s-carte" }, U.el("p", { class: "m4s-placeholder" },
+        "Les catégories « CUISINE » et « BUREAU » sont introuvables (ou désactivées) dans Configuration › Catégories d'encadrants."))) ;
+      return;
+    }
+
+    // Index des quantités : "categorie|jour|service" → nombre
+    const index = new Map();
+    etat.lignes.filter(l => l.groupe_code === GROUPE_CUISINE_BUREAU)
+      .forEach(l => index.set(`${l.categorie_id}|${l.jour}|${l.service}`, l.nombre));
+
+    const jours = U.joursDeLaSemaine(semaine);
+    const SERVICES = ["midi", "soir"];
+
+    zone.innerHTML = "";
+    zone.append(U.el("div", { class: "m4s-info" },
+      U.el("span", {}, "💡"),
+      U.el("span", {}, "Repas du personnel de la cuisine et du bureau, gérés directement par la cuisine. Comptés en 2e service, texture normale : dès qu'un nombre est saisi, la ligne apparaît automatiquement dans Production cuisine."),
+    ));
+
+    const carte = U.el("div", { class: "m4s-carte" });
+    carte.append(U.el("div", { class: "m4s-vue-titre" },
+      U.el("h2", {}, "Repas cuisine et bureau"),
+      U.el("span", { class: "m4s-compteur" }, `${postes.length} postes`),
+    ));
+    const cadre = U.el("div", { class: "m4s-tableau-cadre" });
+
+    const trE = U.el("tr", {}, U.el("th", { style: "min-width:170px" }, "Personnel"));
+    const COULEURS_JOUR = ["var(--lundi)", "var(--mardi)", "var(--mercredi)", "var(--jeudi)", "var(--vendredi)", "var(--samedi)", "var(--dimanche)"];
+    jours.forEach((j, i) => trE.append(
+      U.el("th", { class: "m4s-th-jour", colspan: 2 },
+        U.el("div", { class: "m4s-jour-nom" }, `${j.nom.toUpperCase()} ${U.dateFR(j.date).slice(0, 5)}`),
+        U.el("div", { class: "m4s-services" }, U.el("span", {}, "MIDI"), U.el("span", {}, "SOIR")))));
+    const tbody = U.el("tbody");
+
+    // Totaux recalculés à la volée (sans requête réseau)
+    const champsTotal = {};
+    const majTotal = (jour, service) => {
+      let t = 0; postes.forEach(c => { t += index.get(`${c.id}|${jour}|${service}`) || 0; });
+      if (champsTotal[`${jour}|${service}`]) champsTotal[`${jour}|${service}`].textContent = t || "";
+    };
+
+    postes.forEach(c => {
+      const tr = U.el("tr", {}, U.el("td", { style: "font-weight:700" }, c.libelle));
+      jours.forEach(j => {
+        const jourCle = j.nom.toLowerCase();
+        SERVICES.forEach(service => {
+          const cle = `${c.id}|${jourCle}|${service}`;
+          const val = index.get(cle) || "";
+          const input = U.el("input", { class: "m4s-input m4s-case-nb", type: "number", min: "0", value: val, inputmode: "numeric" });
+          input.addEventListener("change", async () => {
+            const n = parseInt(input.value, 10) || 0;
+            input.value = n || "";
+            input.disabled = true;
+            try {
+              await PERSISTANCE.enregistrerEncadrant({ semaine, groupeCode: GROUPE_CUISINE_BUREAU, categorieId: c.id, jour: jourCle, service, nombre: n });
+              if (n > 0) index.set(cle, n); else index.delete(cle);
+              majTotal(jourCle, service);
+              toast("Enregistré.", "succes", 1000);
+            } catch (e) {
+              input.value = index.get(cle) || "";
+              toast("Échec : " + e.message, "erreur", 6000);
+            } finally { input.disabled = false; }
+          });
+          tr.append(U.el("td", { class: "m4s-td-case" }, input));
+        });
+      });
+      tbody.append(tr);
+    });
+
+    const trT = U.el("tr", { class: "m4s-ligne-total" }, U.el("td", { style: "font-weight:800" }, "Total"));
+    jours.forEach(j => SERVICES.forEach(service => {
+      const cell = U.el("td", { class: "m4s-td-case", style: "text-align:center;font-weight:800" });
+      champsTotal[`${j.nom.toLowerCase()}|${service}`] = cell;
+      trT.append(cell);
+    }));
+    tbody.append(trT);
+
+    const tab = U.el("table", { class: "m4s-tableau m4s-tableau--encadrants" }, U.el("thead", {}, trE), tbody);
+    habillerGrilleSemaine(tab, jours);
+    cadre.append(tab);
+    carte.append(cadre);
+    zone.append(carte);
+    jours.forEach(j => SERVICES.forEach(sv => majTotal(j.nom.toLowerCase(), sv)));
   }
 
   /* ===== [B2] REPAS ANIMATION — document imprimable ====================
@@ -3598,6 +4180,8 @@
   async function vueRepasAnimation(conteneur, module) {
     conteneur.innerHTML = "";
     const semaine = ETAT.semaineActive;
+    // Renseigné une fois les données chargées (voir fin de la fonction)
+    let imprimerFn = null;
 
     conteneur.append(U.el("div", { class: "m4s-page-titre" },
       U.el("div", {},
@@ -3605,7 +4189,9 @@
         U.el("div", { class: "m4s-sous" },
           semaine ? `S${semaine.numero} — ${semaine.annee} · du ${U.dateFR(semaine.dateDebut)} au ${U.dateFR(semaine.dateFin)}` : "")),
       U.el("div", { class: "m4s-actions m4s-no-print" },
-        U.el("button", { class: "m4s-btn m4s-btn--or", onclick: () => window.print() }, "🖨 Imprimer")),
+        U.el("button", { class: "m4s-btn m4s-btn--or",
+          onclick: () => imprimerFn ? imprimerFn() : toast("Aucune animation à imprimer pour le moment.", "erreur") },
+          "🖨 Imprimer (A3)")),
     ));
 
     const zone = U.el("div");
@@ -3655,6 +4241,36 @@
       (ordreJour[a.jour] - ordreJour[b.jour]) || (ordreService[a.service] - ordreService[b.service]) ||
       String(libelleType[a.type_code] || a.type_code).localeCompare(String(libelleType[b.type_code] || b.type_code), "fr"));
 
+    // Nature du repas → couleur de l'en-tête (alerte visuelle pour la cuisine).
+    // Pique-nique = type dont le libellé contient « pique » (ou code « PicNic… ») ;
+    // sinon le service décide : soir → repas animation du soir, midi → animation du midi.
+    const estPiqueNique = code => natureRepasAnimation(code, libelleType[code], "midi") === "pique";
+    const classeNature = a => estPiqueNique(a.type_code) ? "m4s-vue-titre--pique"
+      : (a.service === "soir" ? "m4s-vue-titre--anim-soir" : "m4s-vue-titre--anim-midi");
+
+    // Légende des couleurs (en haut de la feuille)
+    const legendeAnim = U.el("div", { class: "m4s-legende-anim" });
+    [["var(--bleu)", "Animation du midi"], ["var(--vert)", "Pique-nique"], ["var(--tdb-soir)", "Repas animation du soir"]].forEach(([coul, lib]) => {
+      const puce = U.el("i", {}); puce.style.background = coul;
+      legendeAnim.append(U.el("span", {}, puce, lib));
+    });
+    zone.append(legendeAnim);
+
+    // Calcul unique d'une animation (utilisé par l'écran ET l'impression A3).
+    // Les encadrants sont comptés dans « Normal » et dans le total des présents.
+    const calculAnim = a => {
+      const inscrits = (inscriptions[`${a.jour}|${a.service}|${a.type_code}`] || [])
+        .map(id => residentParId[id]).filter(Boolean)
+        .sort((x, y) => String(x.nom_prenom || "").localeCompare(String(y.nom_prenom || ""), "fr"));
+      const estMixe = r => String(r.texture_code || "").toUpperCase().startsWith("M");
+      // Les résidents en gastrostomie restent listés (ligne rouge) mais ne sont pas comptés.
+      const comptes = inscrits.filter(estCompte);
+      const nbMixe = comptes.filter(estMixe).length;
+      const nbEncadrants = Number(a.nb_repas_pers) || 0;
+      const nbNormal = (comptes.length - nbMixe) + nbEncadrants;
+      return { inscrits, estMixe, nbMixe, nbEncadrants, nbNormal, totalPresents: nbMixe + nbNormal };
+    };
+
     let jourAffiche = null;
     animationsTriees.forEach(a => {
       // Titre de jour (une seule fois), pour structurer visuellement le document
@@ -3665,16 +4281,10 @@
           `${a.jour.charAt(0).toUpperCase()}${a.jour.slice(1)}${infoJour ? " " + U.dateFR(infoJour.date) : ""}`));
       }
 
-      const cleInscrits = `${a.jour}|${a.service}|${a.type_code}`;
-      const inscrits = (inscriptions[cleInscrits] || [])
-        .map(id => residentParId[id]).filter(Boolean)
-        .sort((x, y) => String(x.nom_prenom || "").localeCompare(String(y.nom_prenom || ""), "fr"));
-
-      const nbMixe = inscrits.filter(r => String(r.texture_code || "").toUpperCase().startsWith("M")).length;
-      const nbNormal = inscrits.length - nbMixe;
+      const { inscrits, nbMixe, nbEncadrants, nbNormal, totalPresents } = calculAnim(a);
 
       const carte = U.el("div", { class: "m4s-carte" });
-      carte.append(U.el("div", { class: "m4s-vue-titre" },
+      carte.append(U.el("div", { class: "m4s-vue-titre " + classeNature(a) },
         U.el("h2", {}, libelleType[a.type_code] || a.type_code),
         U.el("span", { class: "m4s-compteur" },
           `${a.service === "midi" ? "Midi" : "Soir"}${a.lieu_code ? " · " + (libelleGroupe[a.lieu_code] || a.lieu_code) : ""}`),
@@ -3689,8 +4299,10 @@
         const tbody = U.el("tbody");
         inscrits.forEach(r => {
           const mixe = String(r.texture_code || "").toUpperCase().startsWith("M");
-          tbody.append(U.el("tr", { class: mixe ? "m4s-ligne--mixe" : null },
-            U.el("td", { style: "font-weight:500" }, r.nom_prenom || "—"),
+          const gas = !estCompte(r);
+          tbody.append(U.el("tr", { class: gas ? "m4s-ligne--gastro" : (mixe ? "m4s-ligne--mixe" : "") },
+            U.el("td", { style: "font-weight:500" }, r.nom_prenom || "—",
+              gas ? U.el("span", { class: "m4s-badge m4s-badge--gastro", style: "margin-left:6px", title: "Gastrostomie — non comptée" }, "GASTRO") : null),
             U.el("td", {}, U.el("span", { class: "m4s-badge m4s-badge--normal" }, libelleGroupe[r.groupe_code] || r.groupe_code || "—")),
             U.el("td", { class: "m4s-muet" }, r.aversions || "—"),
             U.el("td", { class: "m4s-muet" }, r.allergies || "—"),
@@ -3701,15 +4313,146 @@
       }
 
       // Ligne de synthèse (toujours affichée, même sans inscrit)
-      const synth = U.el("div", { style: "display:flex;gap:24px;padding:12px 20px;border-top:1px solid var(--bordure);font-size:13px;font-weight:600" },
-        U.el("span", {}, `👤 Encadrants : ${a.nb_repas_pers || 0}`),
-        U.el("span", {}, `Mixé : ${nbMixe}`),
+      const synth = U.el("div", { style: "display:flex;gap:24px;padding:12px 20px;border-top:1px solid var(--bordure);font-size:13px;font-weight:600;flex-wrap:wrap" },
+        U.el("span", {}, `👤 Encadrants : ${nbEncadrants}`),
+        U.el("span", { class: "m4s-puce-mixe" }, `Mixé : ${nbMixe}`),
         U.el("span", {}, `Normal : ${nbNormal}`),
-        U.el("span", { style: "margin-left:auto;font-weight:800" }, `Total présents : ${inscrits.length}`),
+        U.el("span", { style: "margin-left:auto;font-weight:800" }, `Total présents : ${totalPresents}`),
       );
       carte.append(synth);
       zone.append(carte);
     });
+
+    // ---------------------------------------------------------------
+    // Impression A3 PORTRAIT — une seule page (fenêtre dédiée, couleurs figées
+    // en hexadécimal). Toutes les animations sont disposées en colonnes ; le
+    // programme MESURE le rendu et retient la plus grande taille de texte (et
+    // le nombre de colonnes 2 à 4) qui tient sur une page. Si le contenu est
+    // trop dense même à la taille minimale (6 pt), il bascule sur plusieurs
+    // pages plutôt que de couper des données, et prévient l'utilisateur.
+    // Ne modifie NI l'affichage écran NI les calculs (calculAnim partagé).
+    // ---------------------------------------------------------------
+    function imprimerRepasAnimation() {
+      const fenetre = window.open("", "_blank");
+      if (!fenetre) { toast("Le navigateur a bloqué la fenêtre d'impression.", "erreur", 6000); return; }
+
+      const HEX = { midi: "#1E3A8A", pique: "#15803D", soir: "#B12A6B" };   // = couleurs de l'écran
+      const HEX_MIXE = "#A9C8F2";
+      const nature = a => estPiqueNique(a.type_code) ? "pique" : (a.service === "soir" ? "soir" : "midi");
+      const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const dd = new Date(), pz = n => String(n).padStart(2, "0");
+      const edite = `${pz(dd.getDate())}/${pz(dd.getMonth() + 1)}/${dd.getFullYear()} à ${pz(dd.getHours())}:${pz(dd.getMinutes())}`;
+
+      const cartesHTML = animationsTriees.map(a => {
+        const { inscrits: ins, estMixe, nbMixe, nbEncadrants, nbNormal, totalPresents } = calculAnim(a);
+        const infoJour = jours.find(j => j.nom.toLowerCase() === a.jour);
+        const jourTxt = `${a.jour.slice(0, 3).toUpperCase()} ${infoJour ? U.dateFR(infoJour.date).slice(0, 5) : ""} · ${a.service === "midi" ? "MIDI" : "SOIR"}`;
+        const lieu = a.lieu_code ? (libelleGroupe[a.lieu_code] || a.lieu_code) : "";
+        // Une ligne par résident (nom + groupe) ; aversions / allergies sur une
+        // sous-ligne SEULEMENT s'il y en a → les noms ne passent jamais à la ligne.
+        const corps = ins.length
+          ? `<table>${ins.map(r => {
+              const m = !estCompte(r) ? "gas" : (estMixe(r) ? "mixe" : "");
+              const det = (r.aversions ? `<span class="av">Av. ${esc(r.aversions)}</span>` : "")
+                        + (r.aversions && r.allergies ? " " : "")
+                        + (r.allergies ? `<span class="al">⚠\uFE0E ${esc(r.allergies)}</span>` : "");
+              return `<tr class="${m}"><td class="nom">${esc(r.nom_prenom || "—")}${m === "mixe" ? ' <span class="mx">MIXÉ</span>' : ""}${m === "gas" ? ' <span class="gs">GASTRO · non compté</span>' : ""}</td>`
+                + `<td class="grp">${esc(libelleGroupe[r.groupe_code] || r.groupe_code || "—")}</td></tr>`
+                + (det ? `<tr class="${m} det"><td colspan="2">${det}</td></tr>` : "");
+            }).join("")}</table>`
+          : `<div class="vide">Aucun résident inscrit</div>`;
+
+        return `<div class="carte">`
+          + `<div class="tete" style="background:${HEX[nature(a)]}"><div class="l1"><span class="t">${esc(libelleType[a.type_code] || a.type_code)}</span><span class="j">${esc(jourTxt)}</span></div>`
+          + (lieu ? `<div class="lieu">${esc(lieu)}</div>` : "") + `</div>`
+          + corps
+          + `<div class="synth"><span>Encadrants : ${nbEncadrants}</span><span class="pm">Mixé : ${nbMixe}</span>`
+          + `<span>Normal : ${nbNormal}</span>`
+          + `<span class="tot">Total : ${totalPresents}</span></div></div>`;
+      }).join("");
+
+      const style = `
+        @page { size: A3 portrait; margin: 8mm; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html, body { width:281mm; }
+        body { font-family: Arial, sans-serif; color:#14203A; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        #feuille { position:relative; width:281mm; height:402mm; padding-bottom:5mm; overflow:hidden; }
+        .entete { display:flex; justify-content:space-between; align-items:flex-end; padding-bottom:2.5mm; border-bottom:1.2pt solid #1E3A8A; }
+        .etab { display:flex; align-items:center; gap:3mm; }
+        .logo { width:11mm; height:11mm; border-radius:2mm; background:#1E3A8A; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11pt; }
+        .etab .nom { font-size:13pt; font-weight:800; } .etab .sous { font-size:8pt; color:#55617A; }
+        .meta { text-align:right; } .ti { font-size:20pt; font-weight:800; line-height:1.05; }
+        .pe { font-size:10pt; color:#55617A; margin-top:1mm; font-weight:700; }
+        .legende { display:flex; flex-wrap:wrap; align-items:center; gap:2mm 5mm; padding:2mm 0 2.5mm; font-size:8pt; font-weight:700; }
+        .legende i { display:inline-block; width:4mm; height:4mm; border-radius:.8mm; margin-right:1.5mm; vertical-align:-1mm; }
+        .legende .ed { margin-left:auto; font-weight:400; color:#8A94A8; }
+        #cartes { column-count:3; column-gap:4mm; column-fill:auto; font-size:8pt; }
+        .carte { break-inside:avoid; page-break-inside:avoid; -webkit-column-break-inside:avoid; margin-bottom:3mm; border:.6pt solid #8F9BB0; border-radius:1.5mm; overflow:hidden; }
+        .tete { color:#fff; padding:1.2mm 2mm; }
+        .tete .l1 { display:flex; justify-content:space-between; align-items:baseline; gap:2mm; }
+        .tete .t { font-size:1.3em; font-weight:800; } .tete .j { font-weight:800; white-space:nowrap; }
+        .tete .lieu { font-size:.85em; font-weight:600; opacity:.95; }
+        table { width:100%; border-collapse:collapse; }
+        td { padding:.4mm 1.4mm; border-top:.3pt solid #DDE3EC; vertical-align:baseline; line-height:1.2; }
+        td.nom { font-weight:600; white-space:nowrap; }
+        td.grp { color:#55617A; text-align:right; white-space:nowrap; font-size:.9em; }
+        tr.det td { border-top:0; padding-top:0; padding-bottom:.5mm; font-size:.9em; }
+        .av { color:#55617A; font-style:italic; } .al { color:#B91C1C; font-weight:700; }
+        tr.mixe td { background:${HEX_MIXE}; } tr.mixe td.nom { font-weight:800; }
+        tr.gas td { background:#FCA5A5; color:#7F1D1D; } .gs { font-size:.7em; font-weight:800; background:#B91C1C; color:#fff; border-radius:.3em; padding:0 .4em; vertical-align:.1em; }
+        .mx { font-size:.72em; font-weight:800; background:#1E3A8A; color:#fff; border-radius:.6mm; padding:0 1mm; vertical-align:.1em; }
+        .vide { padding:1.2mm 2mm; color:#8A94A8; font-style:italic; }
+        .synth { display:flex; flex-wrap:wrap; gap:.6mm 3mm; align-items:baseline; padding:1.1mm 2mm; background:#F2F5FA; border-top:.6pt solid #8F9BB0; font-weight:700; }
+        .synth .pm { background:${HEX_MIXE}; border-radius:.8mm; padding:0 1.5mm; }
+        .synth small { font-weight:500; color:#55617A; }
+        .synth .tot { margin-left:auto; font-weight:800; font-size:1.1em; }
+      `;
+
+      fenetre.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Repas animation — S${semaine.numero} ${semaine.annee}</title><style>${style}</style></head><body>`
+        + `<div id="feuille">`
+        + `<div class="entete"><div class="etab"><div class="logo">M4S</div><div><div class="nom">MAS « 4 Saisons »</div><div class="sous">Restauration · Service hôtelier</div></div></div>`
+        + `<div class="meta"><div class="ti">Repas animation</div><div class="pe">Semaine ${semaine.numero} · du ${U.dateFR(semaine.dateDebut)} au ${U.dateFR(semaine.dateFin)}</div></div></div>`
+        + `<div class="legende"><span><i style="background:${HEX.midi}"></i>Animation du midi</span><span><i style="background:${HEX.pique}"></i>Pique-nique</span>`
+        + `<span><i style="background:${HEX.soir}"></i>Repas animation du soir</span><span><i style="background:${HEX_MIXE}"></i>Repas mixé</span><span><i style="background:#FCA5A5"></i>Gastrostomie (non compté)</span>`
+        + `<span class="ed">Édité le ${edite} · M4S</span></div>`
+        + `<div id="cartes">${cartesHTML}</div></div></body></html>`);
+      fenetre.document.close();
+
+      // Ajustement à UNE page : on teste 2, 3 puis 4 colonnes et, pour chacune, la
+      // plus grande taille de texte (11 pt → 6 pt) qui ne déborde ni en hauteur
+      // ni en largeur ; on garde la combinaison au texte le plus grand.
+      setTimeout(() => {
+        try {
+          const doc = fenetre.document;
+          const feuille = doc.getElementById("feuille"), cartes = doc.getElementById("cartes");
+          const padBas = parseFloat(fenetre.getComputedStyle(feuille).paddingBottom) || 0;
+          cartes.style.height = (feuille.clientHeight - padBas - cartes.offsetTop) + "px";
+          const tient = () => cartes.scrollWidth <= cartes.clientWidth + 1 && cartes.scrollHeight <= cartes.clientHeight + 1;
+
+          let meilleur = null;
+          for (const cols of [2, 3, 4]) {
+            cartes.style.columnCount = cols;
+            for (let fs = 13; fs >= 6; fs -= 0.25) {
+              cartes.style.fontSize = fs + "pt";
+              if (tient()) { if (!meilleur || fs > meilleur.fs) meilleur = { cols, fs }; break; }
+            }
+          }
+          if (meilleur) {
+            cartes.style.columnCount = meilleur.cols; cartes.style.fontSize = meilleur.fs + "pt";
+            cartes.style.columnFill = "balance";                 // colonnes équilibrées si ça tient toujours
+            if (!tient()) cartes.style.columnFill = "auto";
+          } else {
+            // Trop dense pour une page : plusieurs pages plutôt que des données coupées
+            feuille.style.height = "auto"; feuille.style.overflow = "visible";
+            cartes.style.height = "auto"; cartes.style.columnCount = 4;
+            cartes.style.fontSize = "6pt"; cartes.style.columnFill = "balance";
+            toast("Trop d'animations pour une seule page A3 : impression sur plusieurs pages.", "erreur", 7000);
+          }
+        } catch (e) { /* fenêtre fermée pendant l'ajustement : rien à faire */ }
+        setTimeout(() => { try { fenetre.print(); } catch (e) {} }, 300);
+      }, 250);
+    }
+    imprimerFn = imprimerRepasAnimation;
   }
 
   // Index des jours de la semaine (lundi=0 … dimanche=6), pour placer une
@@ -3952,33 +4695,55 @@
   }
 
   /* ===== [B3] PRODUCTION CUISINE — feuille de production (lecture) ====
-     Reproduit l'onglet CUISINE : pour UN jour et UN service, le nombre
-     de portions à préparer par TEXTURE (Normal/Mixé) et par PLAT
-     (Entrée/Plat/Dessert) — calcul basé sur les textures et portions
-     propres à chaque plat (un résident peut avoir une texture différente
-     pour son entrée et son dessert), regroupées par :
-       • 1er service, par groupe
-       • 2e service, par groupe (dont ADJ)
-       • Repas spéciaux : un bloc par animation programmée ce jour/service
+     Reproduit l'onglet CUISINE, refondu pour être LISIBLE DE LOIN :
+     UNE feuille = UN jour, avec le MIDI et le SOIR côte à côte.
+     Pour chaque service :
+       • en gros : les PARTS À PRODUIRE par plat (Entrée / Plat / Dessert)
+         et par texture (Normal / Mixé). Pour la cuisine, seul compte le
+         nombre de parts, PEU IMPORTE le client : résidents + encadrants +
+         familles (+ encadrants des animations) + plat témoin ;
+       • en dessous, plus petit : le détail de ces parts par groupe (1er
+         service, 2e service, repas spéciaux/animations), qui se termine par
+         le TOTAL À PRODUIRE (= les gros chiffres) ;
+       • liste des absents.
+     Encadrants et familles n'ont pas de texture en base : chaque personne
+     compte pour 1 part NORMALE d'entrée, de plat et de dessert, dans le
+     2e SERVICE de son groupe (mention « dont N enc. + N fam. »).
+     Calcul des résidents (voir calculerProduction) : basé sur les
+     textures et portions propres à chaque plat, regroupées par
+       • 1er service, par groupe ; 2e service, par groupe (dont ADJ) ;
+       • repas spéciaux : un bloc par animation programmée ce jour/service
          (ces résidents sortent du compte de leur groupe : ils mangent
-         ailleurs, à l'animation)
-     Un résident absent (statut de catégorie « sortie ») n'est compté
-     nulle part, et apparaît dans la liste des absents en bas de page.
-     Sous le tableau : effectifs encadrants/familles (non ventilés par
-     texture, la donnée n'existe pas à ce niveau) et le rappel du plat
-     témoin, une portion normale fixe conservée par principe qualité.
+         ailleurs, à l'animation).
+     Un résident absent (statut de catégorie « sortie ») n'est compté nulle
+     part et figure dans la liste des absents.
+     Écran et impression partagent le MÊME code HTML et les MÊMES styles
+     ([SEC-2.4c], classes .m4s-prod*). L'impression tient sur UNE page par
+     jour (A4 ou A3 paysage, au choix) : le texte est agrandi au maximum tant
+     que tout tient sur la page.
      ==================================================================== */
   async function vueProductionCuisine(conteneur, module) {
     conteneur.innerHTML = "";
     const semaine = ETAT.semaineActive;
+    if (!ETAT.formatProdCuisine) ETAT.formatProdCuisine = "A4";
+
+    // Actions d'impression (branchées une fois les données chargées)
+    let imprimerJour = null, imprimerSemaine = null;
+    const btnJour = U.el("button", { class: "m4s-btn m4s-btn--or",
+      onclick: () => imprimerJour ? imprimerJour() : toast("Aucune donnée à imprimer pour le moment.", "erreur") }, "🖨 Imprimer la journée");
+    const btnSemaine = U.el("button", { class: "m4s-btn",
+      onclick: () => imprimerSemaine ? imprimerSemaine() : toast("Aucune donnée à imprimer pour le moment.", "erreur") }, "🖨 Imprimer la semaine");
+    const selFormat = U.el("select", { class: "m4s-select", style: "width:auto;min-width:0", title: "Format du papier (paysage)" },
+      U.el("option", { value: "A4" }, "A4"), U.el("option", { value: "A3" }, "A3"));
+    selFormat.value = ETAT.formatProdCuisine;
+    selFormat.addEventListener("change", () => { ETAT.formatProdCuisine = selFormat.value; });
 
     conteneur.append(U.el("div", { class: "m4s-page-titre" },
       U.el("div", {},
         U.el("h1", {}, "Production cuisine"),
         U.el("div", { class: "m4s-sous" },
           semaine ? `S${semaine.numero} — ${semaine.annee} · du ${U.dateFR(semaine.dateDebut)} au ${U.dateFR(semaine.dateFin)}` : "")),
-      U.el("div", { class: "m4s-actions m4s-no-print" },
-        U.el("button", { class: "m4s-btn m4s-btn--or", onclick: () => window.print() }, "🖨 Imprimer")),
+      U.el("div", { class: "m4s-actions m4s-no-print" }, selFormat, btnJour, btnSemaine),
     ));
 
     const zone = U.el("div");
@@ -3986,9 +4751,9 @@
     zone.append(U.el("div", { class: "m4s-carte" }, U.el("p", { class: "m4s-placeholder" }, "Chargement…")));
     if (!semaine) return;
 
-    let groupes, residents, types, etatCmd, etatEnc, etatFam, etatAnim;
+    let groupes, residents, types, etatCmd, etatEnc, etatFam, etatAnim, categoriesEnc;
     try {
-      [groupes, residents, types, etatCmd, etatEnc, etatFam, etatAnim] = await Promise.all([
+      [groupes, residents, types, etatCmd, etatEnc, etatFam, etatAnim, categoriesEnc] = await Promise.all([
         PERSISTANCE.chargerGroupes(),
         PERSISTANCE.chargerResidentsPourCommande(),
         PERSISTANCE.chargerTypesRepas(),
@@ -3996,6 +4761,7 @@
         PERSISTANCE.chargerCommandesEncadrants(semaine),
         PERSISTANCE.chargerCommandesFamilles(semaine),
         PERSISTANCE.chargerAnimationsSemaine(semaine),
+        PERSISTANCE.chargerCategoriesEncadrants(true),
       ]);
     } catch (e) {
       zone.innerHTML = "";
@@ -4006,9 +4772,13 @@
     const categorieDuStatut = {}; types.forEach(t => { categorieDuStatut[t.code] = t.categorie; });
     const libelleType = {}; types.forEach(t => { libelleType[t.code] = t.libelle; });
     const groupesAffiches = groupesHabites(groupes, residents);
+    const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
     const indexResidents = new Map();
     etatCmd.commandes.forEach(c => indexResidents.set(`${c.resident_id}|${c.jour}|${c.service}`, c.valeur));
+    const residentParId = {}; residents.forEach(r => { residentParId[r.id] = r; });
+    // Catégories « CUISINE » / « BUREAU » (personnel géré par la cuisine) : id → "cuisine" | "bureau"
+    const typeCatCB = {}; categoriesEnc.forEach(c => { const t = typeCuisineBureau(c); if (t) typeCatCB[c.id] = t; });
 
     const jours = U.joursDeLaSemaine(semaine);
     // Jour par défaut : celui d'aujourd'hui si la semaine est la semaine en
@@ -4017,7 +4787,6 @@
     if (!ETAT.jourProdCuisine || !jours.some(j => j.date === ETAT.jourProdCuisine)) {
       ETAT.jourProdCuisine = (jours.find(j => j.date === ajd) || jours[0]).date;
     }
-    if (!ETAT.serviceProdCuisine) ETAT.serviceProdCuisine = "midi";
 
     // Additionne les portions d'un résident dans un compteur { entreeN, entreeM, platN, platM, dessertN, dessertM }
     function ajouterPortions(acc, r) {
@@ -4032,33 +4801,17 @@
     const videPortions = () => ({ entreeN: 0, entreeM: 0, platN: 0, platM: 0, dessertN: 0, dessertM: 0 });
     const addPortions = (a, b) => { Object.keys(a).forEach(k => a[k] += b[k]); return a; };
 
-    function dessiner() {
-      const jour = ETAT.jourProdCuisine;
-      const service = ETAT.serviceProdCuisine;
-      const jourCle = jours.find(j => j.date === jour)?.nom.toLowerCase();
-
-      zone.innerHTML = "";
-
-      // --- Sélecteurs jour + service ---
-      const barreJours = U.el("div", { class: "m4s-filtres m4s-no-print" });
-      jours.forEach(j => barreJours.append(U.el("button", {
-        class: "m4s-filtre-btn" + (jour === j.date ? " m4s-filtre-btn--actif" : ""),
-        onclick: () => { ETAT.jourProdCuisine = j.date; dessiner(); },
-      }, `${j.nom.slice(0, 3)} ${U.dateFR(j.date).slice(0, 5)}`)));
-      const barreService = U.el("div", { class: "m4s-filtres m4s-no-print", style: "margin-top:8px" },
-        U.el("button", { class: "m4s-filtre-btn" + (service === "midi" ? " m4s-filtre-btn--actif" : ""), onclick: () => { ETAT.serviceProdCuisine = "midi"; dessiner(); } }, "Midi"),
-        U.el("button", { class: "m4s-filtre-btn" + (service === "soir" ? " m4s-filtre-btn--actif" : ""), onclick: () => { ETAT.serviceProdCuisine = "soir"; dessiner(); } }, "Soir"));
-      zone.append(barreJours, barreService);
-
-      zone.append(U.el("h2", { style: "margin:20px 0 10px;font-size:16px" },
-        `${jourCle.charAt(0).toUpperCase()}${jourCle.slice(1)} ${U.dateFR(jour)} — ${service === "midi" ? "Midi" : "Soir"}`));
-
-      // --- Répartition des résidents en compartiments ---
+    // ---------------------------------------------------------------
+    // CALCUL (identique à l'ancienne feuille) : pour un jour + un service,
+    // renvoie toutes les quantités. Aucune écriture, aucun affichage.
+    // ---------------------------------------------------------------
+    function calculerProduction(jourCle, service) {
       const absents = [];
       const parGroupeService = {};   // "groupe|1er|2e" → { portions, effectif }
-      const parAnimation = {};       // type_code → { portions, effectif, residents:[] }
+      const parAnimation = {};       // type_code → { portions, effectif }
 
       residents.forEach(r => {
+        if (!estCompte(r)) return;                                          // gastrostomie : jamais comptée
         if (!groupesAffiches.some(g => g.code === r.groupe_code)) return;   // écarte AT/lieux
         if (!serviceApplicable(r.groupe_code, service)) return;             // [ADJ] non concerné le soir
         const valeur = indexResidents.get(`${r.id}|${jourCle}|${service}`) || "";
@@ -4067,8 +4820,8 @@
         if (cat === "sortie") { absents.push(r); return; }
 
         if (cat === "animation") {
-          const bloc = (parAnimation[valeur] ||= { portions: videPortions(), effectif: 0, residents: [] });
-          ajouterPortions(bloc.portions, r); bloc.effectif++; bloc.residents.push(r);
+          const bloc = (parAnimation[valeur] ||= { portions: videPortions(), effectif: 0 });
+          ajouterPortions(bloc.portions, r); bloc.effectif++;
           return;
         }
 
@@ -4078,84 +4831,231 @@
         ajouterPortions(bloc.portions, r); bloc.effectif++;
       });
 
-      // --- Construction du tableau ---
-      const cadre = U.el("div", { class: "m4s-tableau-cadre" });
-      const trE1 = U.el("tr", {},
-        U.el("th", { rowspan: 2 }, "Repas"),
-        U.el("th", { rowspan: 2, style: "text-align:right" }, "Effectif"),
-        U.el("th", { colspan: 3, style: "text-align:center" }, "Normal"),
-        U.el("th", { colspan: 3, style: "text-align:center" }, "Mixé"));
-      const trE2 = U.el("tr", {},
-        ...["Entrée", "Plat", "Dessert", "Entrée", "Plat", "Dessert"].map(l => U.el("th", { style: "text-align:right" }, l)));
-      const tbody = U.el("tbody");
-
-      const ligne = (libelle, p, effectif, accent = false) => U.el("tr", { class: accent ? "m4s-ligne-total" : null },
-        U.el("td", { style: accent ? "font-weight:800" : "font-weight:500" }, libelle),
-        U.el("td", { style: "text-align:right" }, effectif),
-        ...["entreeN", "platN", "dessertN", "entreeM", "platM", "dessertM"].map(k =>
-          U.el("td", { style: "text-align:right" }, p[k] || "")));
-
-      // 1er service, par groupe
-      const total1er = videPortions(); let eff1er = 0;
-      groupesAffiches.forEach(g => {
-        const b = parGroupeService[`${g.code}|1er`];
-        if (b) { tbody.append(ligne(`1er service — ${g.libelle || g.code}`, b.portions, b.effectif)); addPortions(total1er, b.portions); eff1er += b.effectif; }
+      // Encadrants et familles : la cuisine compte des PARTS, peu importe le
+      // client. Chaque personne = 1 part NORMALE d'entrée, de plat et de dessert,
+      // rattachée au groupe (encadrants : groupe de la commande ; familles :
+      // groupe du résident visité) et comptée dans le 2e service de ce groupe.
+      const extraParGroupe = {};    // code groupe → { enc, fam }
+      const extra = code => (extraParGroupe[code] ||= { enc: 0, fam: 0 });
+      // Personnel CUISINE / BUREAU : lignes dédiées (voir plus bas), pas rattaché à un groupe
+      const cuisineBureau = { bureau: 0, cuisine: 0 };
+      etatEnc.lignes.filter(l => l.jour === jourCle && l.service === service).forEach(l => {
+        const t = typeCatCB[l.categorie_id];
+        if (t && l.groupe_code === GROUPE_CUISINE_BUREAU) cuisineBureau[t] += (l.nombre || 0);
+        else extra(l.groupe_code).enc += (l.nombre || 0);
       });
-      if (eff1er) tbody.append(ligne("Total 1er service", total1er, eff1er, true));
+      etatFam.lignes.filter(l => l.jour === jourCle && l.service === service)
+        .forEach(l => { extra(residentParId[l.resident_id]?.groupe_code ?? "?").fam += (l.nombre || 0); });
 
-      // 2e service, par groupe
-      const total2e = videPortions(); let eff2e = 0;
-      groupesAffiches.forEach(g => {
-        const b = parGroupeService[`${g.code}|2e`];
-        if (b) { tbody.append(ligne(`2e service — ${g.libelle || g.code}`, b.portions, b.effectif)); addPortions(total2e, b.portions); eff2e += b.effectif; }
-      });
-      if (eff2e) tbody.append(ligne("Total 2e service", total2e, eff2e, true));
-
-      // Repas spéciaux (animations)
-      const totalAnim = videPortions(); let effAnim = 0;
-      const codesAnim = Object.keys(parAnimation);
-      if (codesAnim.length) {
-        tbody.append(U.el("tr", {}, U.el("td", { colspan: 8, style: "font-weight:700;color:var(--texte-doux);padding-top:14px" }, "Repas spéciaux (animations)")));
-        codesAnim.forEach(code => {
-          const b = parAnimation[code];
-          tbody.append(ligne(libelleType[code] || code, b.portions, b.effectif));
-          addPortions(totalAnim, b.portions); effAnim += b.effectif;
+      const bloc = pos => {
+        const lignes = []; const total = videPortions();
+        groupesAffiches.forEach(g => {
+          const b = parGroupeService[`${g.code}|${pos}`];
+          // Encadrants et familles du groupe : comptés dans son 2e service
+          const x = pos === "2e" ? (extraParGroupe[g.code] || { enc: 0, fam: 0 }) : { enc: 0, fam: 0 };
+          if (!b && !x.enc && !x.fam) return;
+          const portions = b ? { ...b.portions } : videPortions();
+          const n = x.enc + x.fam;
+          portions.entreeN += n; portions.platN += n; portions.dessertN += n;
+          lignes.push({ libelle: g.libelle || g.code, portions, enc: x.enc, fam: x.fam });
+          addPortions(total, portions);
         });
-      }
+        if (pos === "2e") {
+          // Personnel CUISINE / BUREAU : 2e service, texture NORMALE, lignes ajoutées
+          // automatiquement dès qu'il y a des présents (onglet « Commande cuisine et bureau »).
+          [["bureau", "BUREAU"], ["cuisine", "CUISINE"]].forEach(([k, lib]) => {
+            const n = cuisineBureau[k]; if (!n) return;
+            const portions = { ...videPortions(), entreeN: n, platN: n, dessertN: n };
+            lignes.push({ libelle: lib, portions, enc: 0, fam: 0 });
+            addPortions(total, portions);
+          });
+        }
+        if (pos === "2e") {
+          // Sécurité : encadrants/familles rattachés à un groupe non affiché (ou à un
+          // résident introuvable) → ligne « Autres », pour que le total reste juste.
+          const affiches = new Set(groupesAffiches.map(g => g.code));
+          let enc2 = 0, fam2 = 0;
+          Object.keys(extraParGroupe).forEach(c => { if (!affiches.has(c)) { enc2 += extraParGroupe[c].enc; fam2 += extraParGroupe[c].fam; } });
+          if (enc2 || fam2) {
+            const portions = { ...videPortions(), entreeN: enc2 + fam2, platN: enc2 + fam2, dessertN: enc2 + fam2 };
+            lignes.push({ libelle: "Autres (hors groupes)", portions, enc: enc2, fam: fam2 });
+            addPortions(total, portions);
+          }
+        }
+        return { lignes, total };
+      };
+      const s1 = bloc("1er"), s2 = bloc("2e");
 
-      // Plat témoin : convention qualité fixe (1 portion normale conservée)
-      const platTemoin = { ...videPortions(), entreeN: 1, platN: 1, dessertN: 1 };
-      tbody.append(ligne("Plat témoin", platTemoin, "—"));
+      // Encadrants d'animation : programmés dans « Animations de la semaine »
+      // (nb_repas_pers) → parts NORMALES en plus des résidents de l'animation.
+      const persAnim = {};
+      etatAnim.animations.filter(a => a.jour === jourCle && a.service === service)
+        .forEach(a => { persAnim[a.type_code] = (persAnim[a.type_code] || 0) + (Number(a.nb_repas_pers) || 0); });
 
-      // Total général
-      const totalGeneral = addPortions(addPortions(addPortions({ ...total1er }, total2e), totalAnim), platTemoin);
-      tbody.append(ligne("TOTAL GÉNÉRAL", totalGeneral, eff1er + eff2e + effAnim, true));
+      const totalAnim = videPortions();
+      const anims = [...new Set([...Object.keys(parAnimation), ...Object.keys(persAnim)])].map(code => {
+        const portions = parAnimation[code] ? { ...parAnimation[code].portions } : videPortions();
+        const pers = persAnim[code] || 0;
+        portions.entreeN += pers; portions.platN += pers; portions.dessertN += pers;
+        addPortions(totalAnim, portions);
+        return { code, libelle: libelleType[code] || code, nature: natureRepasAnimation(code, libelleType[code], service),
+                 portions, pers, residents: parAnimation[code]?.effectif || 0 };
+      }).filter(a => a.residents || a.pers);
 
-      cadre.append(U.el("table", { class: "m4s-tableau" }, U.el("thead", {}, trE1, trE2), tbody));
-      const carte = U.el("div", { class: "m4s-carte" });
-      carte.append(cadre);
-      zone.append(carte);
+      // Plat témoin : convention qualité fixe — 1 portion conservée dans CHAQUE
+      // colonne, texture normale ET mixée (comme dans le classeur Excel d'origine).
+      const platTemoin = { entreeN: 1, platN: 1, dessertN: 1, entreeM: 1, platM: 1, dessertM: 1 };
+      const totalGeneral = [s1.total, s2.total, totalAnim, platTemoin]
+        .reduce((acc, p) => addPortions(acc, p), videPortions());
+      const aDesParts = Object.values(totalGeneral).reduce((t, n) => t + n, 0) > 6;   // au-delà du seul plat témoin (6 parts)
 
-      // --- Effectifs annexes : encadrants, familles ---
-      const totalEnc = etatEnc.lignes.filter(l => l.jour === jourCle && l.service === service)
-        .reduce((s, l) => s + (l.nombre || 0), 0);
-      const totalFam = etatFam.lignes.filter(l => l.jour === jourCle && l.service === service)
-        .reduce((s, l) => s + (l.nombre || 0), 0);
-
-      zone.append(U.el("div", { class: "m4s-carte" }, U.el("div", { style: "padding:16px 20px;display:flex;gap:32px;font-weight:600" },
-        U.el("span", {}, `👥 Encadrants : ${totalEnc}`),
-        U.el("span", {}, `👨‍👩‍👧 Familles : ${totalFam}`),
-        U.el("span", { class: "m4s-muet", style: "font-weight:400" }, "(effectifs non ventilés par texture)"),
-      )));
-
-      // --- Absents ---
-      if (absents.length) {
-        zone.append(U.el("div", { class: "m4s-carte" }, U.el("div", { style: "padding:16px 20px" },
-          U.el("strong", {}, `Absents (${absents.length}) : `),
-          U.el("span", { class: "m4s-muet" }, absents.map(r => r.nom_prenom).join(", ")),
-        )));
-      }
+      return { service, absents, s1, s2, anims, platTemoin, totalGeneral, aDesParts };
     }
+
+    // ---------------------------------------------------------------
+    // RENDU (HTML partagé écran + impression ; styles dans [SEC-2.4c])
+    // ---------------------------------------------------------------
+    const PLATS = [["ENTRÉE", "entree"], ["PLAT", "plat"], ["DESSERT", "dessert"]];
+    const nombre = n => `<td class="${n ? "" : "m4s-prod__zero"}">${n}</td>`;
+    const nombreMixe = n => `<td class="mx ${n ? "" : "m4s-prod__zero"}">${n}</td>`;
+
+    function htmlService(m) {
+      const nom = m.service === "midi" ? "MIDI" : "SOIR";
+      // 1) Gros : PARTS à produire (résidents + encadrants + familles + témoin)
+      const gros = `<table class="m4s-prod__totaux"><thead><tr><th></th><th>NORMAL</th><th class="mx">MIXÉ</th></tr></thead><tbody>`
+        + PLATS.map(([lib, k]) => `<tr><th>${lib}</th><td class="${m.totalGeneral[k + "N"] ? "" : "m4s-prod__zero"}">${m.totalGeneral[k + "N"]}</td>`
+          + `<td class="mx ${m.totalGeneral[k + "M"] ? "" : "m4s-prod__zero"}">${m.totalGeneral[k + "M"]}</td></tr>`).join("")
+        + `</tbody></table>`;
+
+      // 2) Détail : d'où viennent les parts (la dernière ligne = les gros chiffres)
+      const cellules = p => ["entreeN", "platN", "dessertN"].map(k => nombre(p[k])).join("")
+        + ["entreeM", "platM", "dessertM"].map(k => nombreMixe(p[k])).join("");
+      const ligne = (lib, p, cls = "") => `<tr class="${cls}"><th class="l">${lib}</th>${cellules(p)}</tr>`;
+      const titre = t => `<tr class="sec"><td colspan="7">${t}</td></tr>`;
+      let det = `<table class="m4s-prod__det"><thead><tr><th class="l" rowspan="2">Détail des parts</th><th colspan="3">NORMAL</th><th colspan="3" class="mx">MIXÉ</th></tr>`
+        + `<tr><th>Ent.</th><th>Plat</th><th>Dess.</th><th class="mx">Ent.</th><th class="mx">Plat</th><th class="mx">Dess.</th></tr></thead><tbody>`;
+      const dont = l => (l.enc || l.fam) ? ` <small>dont ${[l.enc ? l.enc + " enc." : "", l.fam ? l.fam + " fam." : ""].filter(Boolean).join(" + ")}</small>` : "";
+      const section = (t, b) => !b.lignes.length ? "" : titre(t) + b.lignes.map(l => ligne(esc(l.libelle) + dont(l), l.portions)).join("")
+        + ligne(`Total ${t.toLowerCase()}`, b.total, "tot");
+      det += section("1er service", m.s1) + section("2e service", m.s2);
+      if (m.anims.length) {
+        det += titre("Repas spéciaux (animations)") + m.anims.map(a =>
+          ligne(`<span class="m4s-prod__chip m4s-prod__chip--${a.nature}">${esc(a.libelle)}</span>` + (a.pers ? ` <small>dont ${a.pers} enc.</small>` : ""), a.portions)).join("");
+      }
+      det += ligne("Plat témoin", m.platTemoin, "temoin") + ligne("TOTAL À PRODUIRE", m.totalGeneral, "tot total") + `</tbody></table>`;
+
+      return `<section class="m4s-prod__svc m4s-prod__svc--${m.service}">`
+        + `<header class="m4s-prod__tete"><span class="m4s-prod__svc-nom">${nom}</span></header>`
+        + `<div class="m4s-prod__gros">${gros}</div><div class="m4s-prod__detail">${det}</div></section>`;
+    }
+
+    // Feuille d'un jour (HTML) + données utiles à l'appelant
+    function feuilleJour(jourIso) {
+      const jourCle = jours.find(j => j.date === jourIso).nom.toLowerCase();
+      const midi = calculerProduction(jourCle, "midi"), soir = calculerProduction(jourCle, "soir");
+      const noms = l => l.map(r => esc(r.nom_prenom)).join(", ");
+      const absents = (midi.absents.length || soir.absents.length)
+        ? `<div class="m4s-prod__absents">` + [["Midi", midi], ["Soir", soir]].filter(([, m]) => m.absents.length)
+            .map(([n, m]) => `<b>Absents ${n} (${m.absents.length}) :</b> ${noms(m.absents)}`).join(" &nbsp;·&nbsp; ") + `</div>` : "";
+      return { html: `<div class="m4s-prod"><div class="m4s-prod__cols">${htmlService(midi)}${htmlService(soir)}</div>${absents}</div>`,
+               aDesRepas: midi.aDesParts || soir.aDesParts, jourCle };
+    }
+    const libelleJour = iso => {
+      const j = jours.find(x => x.date === iso); const n = j.nom;
+      return { court: `${n.toUpperCase()} ${U.dateFR(iso)}`, long: `${n} ${U.dateFR(iso)}` };
+    };
+
+    // ---------------------------------------------------------------
+    // ÉCRAN
+    // ---------------------------------------------------------------
+    function dessiner() {
+      const jour = ETAT.jourProdCuisine;
+      zone.innerHTML = "";
+
+      const barreJours = U.el("div", { class: "m4s-filtres m4s-no-print" });
+      jours.forEach(j => barreJours.append(U.el("button", {
+        class: "m4s-filtre-btn" + (jour === j.date ? " m4s-filtre-btn--actif" : ""),
+        onclick: () => { ETAT.jourProdCuisine = j.date; dessiner(); },
+      }, `${j.nom.slice(0, 3)} ${U.dateFR(j.date).slice(0, 5)}`)));
+      zone.append(barreJours);
+
+      const f = feuilleJour(jour);
+      zone.append(U.el("h2", { class: "m4s-prodpage__jour" }, libelleJour(jour).long));
+      const bloc = U.el("div", { class: "m4s-prodpage" }); bloc.innerHTML = f.html;
+      zone.append(bloc);
+    }
+
+    // ---------------------------------------------------------------
+    // IMPRESSION — 1 page par jour (A4 ou A3 paysage), mêmes styles que l'écran
+    // ---------------------------------------------------------------
+    function cssProduction() {          // recopie les règles .m4s-prod* (couleurs en hexadécimal, autonomes)
+      const regles = [];
+      for (const feuille of document.styleSheets) {
+        try { for (const r of feuille.cssRules) if (r.type === 1 && /\.m4s-prod(?!page)/.test(r.selectorText)) regles.push(r.cssText); } catch (e) { /* feuille inaccessible */ }
+      }
+      return regles.join("\n");
+    }
+
+    function imprimer(joursIso) {
+      const fenetre = window.open("", "_blank");
+      if (!fenetre) { toast("Le navigateur a bloqué la fenêtre d'impression.", "erreur", 6000); return; }
+      const [W, H] = ETAT.formatProdCuisine === "A3" ? [404, 281] : [281, 194];   // zone utile en mm (marges 8 mm)
+      const K = ETAT.formatProdCuisine === "A3" ? 1.414 : 1;
+      const dd = new Date(), pz = n => String(n).padStart(2, "0");
+      const edite = `${pz(dd.getDate())}/${pz(dd.getMonth() + 1)}/${dd.getFullYear()} à ${pz(dd.getHours())}:${pz(dd.getMinutes())}`;
+
+      const pages = joursIso.map(iso => {
+        const l = libelleJour(iso);
+        return `<div class="feuille"><div class="ent"><div class="etab"><div class="logo">M4S</div><div><div class="nom">MAS « 4 Saisons »</div><div class="sous">Production cuisine</div></div></div>`
+          + `<div class="jourt">${esc(l.court)}</div><div class="meta">Semaine ${semaine.numero}<br><span>Édité le ${edite}</span></div></div>`
+          + `<div class="corps">${feuilleJour(iso).html}</div></div>`;
+      }).join("");
+
+      const style = `
+        @page { size: ${ETAT.formatProdCuisine} landscape; margin: 8mm; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html, body { width:${W}mm; }
+        body { font-family: Arial, sans-serif; color:#0F172A; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        .feuille { width:${W}mm; height:${H - 2}mm; overflow:hidden; display:flex; flex-direction:column; page-break-after:always; }
+        .feuille:last-child { page-break-after:auto; }
+        .ent { display:flex; align-items:center; justify-content:space-between; gap:${4 * K}mm; padding-bottom:${1.6 * K}mm; margin-bottom:${2 * K}mm; border-bottom:${1.4}pt solid #1E3A8A; flex:none; }
+        .etab { display:flex; align-items:center; gap:${2.5 * K}mm; }
+        .logo { width:${10 * K}mm; height:${10 * K}mm; border-radius:${1.8 * K}mm; background:#1E3A8A; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:${10 * K}pt; }
+        .nom { font-size:${11 * K}pt; font-weight:800; } .sous { font-size:${8 * K}pt; color:#475569; }
+        .jourt { font-size:${26 * K}pt; font-weight:900; letter-spacing:.02em; text-align:center; flex:1; }
+        .meta { text-align:right; font-size:${9 * K}pt; font-weight:700; color:#475569; } .meta span { font-weight:400; font-size:${7 * K}pt; color:#94A3B8; }
+        .corps { flex:1; min-height:0; }
+        .corps .m4s-prod { height:100%; display:flex; flex-direction:column; }
+        .corps .m4s-prod__cols { flex:1; min-height:0; }
+        .corps .m4s-prod__svc { min-height:0; }
+        ${cssProduction()}
+      `;
+      fenetre.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Production cuisine — S${semaine.numero} ${semaine.annee}</title><style>${style}</style></head><body>${pages}</body></html>`);
+      fenetre.document.close();
+
+      // Ajustement : sur CHAQUE page, plus grande taille de texte qui tient sans déborder.
+      setTimeout(() => {
+        let trop = 0;
+        try {
+          fenetre.document.querySelectorAll(".feuille").forEach(fe => {
+            const prod = fe.querySelector(".m4s-prod");
+            const cols = [...fe.querySelectorAll(".m4s-prod__svc")];
+            const tient = () => cols.every(c => c.scrollHeight <= c.clientHeight + 1 && c.scrollWidth <= c.clientWidth + 1)
+              && prod.scrollHeight <= prod.clientHeight + 1;
+            let ok = false;
+            for (let fs = 20 * K; fs >= 4.5; fs -= 0.25) { prod.style.fontSize = fs + "pt"; if (tient()) { ok = true; break; } }
+            if (!ok) trop++;
+          });
+        } catch (e) { /* fenêtre fermée pendant l'ajustement */ }
+        if (trop) toast("Une feuille est très dense : texte réduit au minimum.", "erreur", 6000);
+        setTimeout(() => { try { fenetre.print(); } catch (e) {} }, 300);
+      }, 300);
+    }
+
+    imprimerJour = () => imprimer([ETAT.jourProdCuisine]);
+    const joursAvecRepas = jours.filter(j => feuilleJour(j.date).aDesRepas).map(j => j.date);
+    btnSemaine.textContent = `🖨 Imprimer la semaine (${joursAvecRepas.length} page${joursAvecRepas.length > 1 ? "s" : ""})`;
+    imprimerSemaine = () => joursAvecRepas.length ? imprimer(joursAvecRepas) : toast("Aucun repas à imprimer cette semaine.", "erreur");
 
     dessiner();
   }
@@ -4252,6 +5152,13 @@
         U.el("span", { class: "m4s-compteur" }, `${liste.length} résident(s)`),
       ));
 
+      // Légende des repères de lecture (écran)
+      const puceMixe = U.el("i", {}); puceMixe.style.background = "#C7DCF8";
+      carte.append(U.el("div", { class: "m4s-legende-anim m4s-no-print", style: "padding-top:10px;padding-bottom:2px" },
+        U.el("span", {}, puceMixe, "Ligne surlignée = repas mixé"),
+        U.el("span", {}, (() => { const i = U.el("i", {}); i.style.background = "#FCA5A5"; return i; })(), "Ligne rouge = gastrostomie"),
+        U.el("span", { style: "font-weight:800" }, "Gras = 1er service")));
+
       const cadre = U.el("div", { class: "m4s-tableau-cadre" });
       const trE = U.el("tr", {}, U.el("th", { style: "min-width:190px" }, "Résident"));
       jours.forEach((j, i) => trE.append(U.el("th", {
@@ -4272,10 +5179,16 @@
       liste.forEach((r, idxLigne) => {
         const tdNom = U.el("td", { style: "font-weight:500;white-space:nowrap" }, r.nom_prenom || "—");
         if (r.type === "temporaire") tdNom.append(" ", U.el("span", { class: "m4s-badge m4s-badge--at" }, "AT"));
-        const tr = U.el("tr", {}, tdNom);
-
         const service1 = Number(r.service_midi) === 1;
         const mixe = String(r.texture_code || "").toUpperCase().startsWith("M");
+        // Repères métier (demande de Nico) : ligne surlignée = repas mixé ;
+        // texte en gras = résident du 1er service. Purement visuel : le
+        // comptage plus bas (s1 / mixé) reste strictement inchangé.
+        // Gastrostomie (demande de Nico) : ligne en ROUGE et NON COMPTÉE dans les
+        // totaux (règle estCompte). La ligne reste affichée avec ses statuts.
+        const gastro = !estCompte(r);
+        if (gastro) tdNom.append(" ", U.el("span", { class: "m4s-badge m4s-badge--gastro", title: "Gastrostomie — non comptée dans les totaux" }, "GASTRO"));
+        const tr = U.el("tr", { class: [mixe ? "m4s-ligne--mixe" : "", service1 ? "m4s-ligne--service1" : "", gastro ? "m4s-ligne--gastro" : ""].filter(Boolean).join(" ") }, tdNom);
 
         jours.forEach((j, iJour) => {
           const jourCle = j.nom.toLowerCase();
@@ -4291,7 +5204,7 @@
             const cat = valeur ? (categorieDuStatut[valeur] || "autre") : null;
             const absent = cat === "sortie";
 
-            if (!absent) {
+            if (!absent && estCompte(r)) {       // gastrostomie : jamais comptée
               inc(jourCle, service, service1 ? "s1" : "s2");
               inc(jourCle, service, service1 ? (mixe ? "s1mixe" : "s1normal") : (mixe ? "s2mixe" : "s2normal"));
             }
@@ -4308,7 +5221,7 @@
       // --- Lignes de synthèse ---
       const idsGroupe = new Set(liste.map(r => r.id));
       const ligneSynthese = (libelle, valeurFn, accent = false) => {
-        const tr = U.el("tr", { class: accent ? "m4s-ligne-total" : null },
+        const tr = U.el("tr", { class: accent ? "m4s-ligne-total" : "m4s-ligne-syn" },
           U.el("td", { style: accent ? "font-weight:800" : "font-weight:600;color:var(--texte-doux)" }, libelle));
         jours.forEach((j, iJour) => {
           const jourCle = j.nom.toLowerCase();
@@ -4330,50 +5243,57 @@
         let n = 0; liste.forEach(r => { n += indexFamilles.get(`${r.id}|${j}|${s}`) || 0; }); return n;
       };
 
-      tbody.append(ligneSynthese("1er service — présents", (j, s) => get(j, s, "s1")));
-      tbody.append(ligneSynthese("dont repas mixé", (j, s) => get(j, s, "s1mixe")));
-      tbody.append(ligneSynthese("dont repas normal", (j, s) => get(j, s, "s1normal")));
-      tbody.append(ligneSynthese("2e service — présents", (j, s) => get(j, s, "s2")));
-      tbody.append(ligneSynthese("dont repas mixé", (j, s) => get(j, s, "s2mixe")));
-      tbody.append(ligneSynthese("dont repas normal", (j, s) => get(j, s, "s2normal")));
+      // Demande de Nico : le tableau n'affiche que les EFFECTIFS. Le détail par
+      // service (1er/2e service, dont mixé/normal) n'est plus affiché ici — il
+      // reste disponible dans « Production cuisine ». Les compteurs s1/s2/mixe/
+      // normal sont toujours calculés plus haut (aucun calcul modifié).
       tbody.append(ligneSynthese("Total résidents", (j, s) => get(j, s, "s1") + get(j, s, "s2")));
       tbody.append(ligneSynthese("Total encadrants", totalEncadrants));
       tbody.append(ligneSynthese("Total familles", totalFamilles));
       tbody.append(ligneSynthese("TOTAL PRÉSENTS",
         (j, s) => get(j, s, "s1") + get(j, s, "s2") + totalEncadrants(j, s) + totalFamilles(j, s), true));
 
-      cadre.append(U.el("table", { class: "m4s-tableau" }, U.el("thead", {}, trE), tbody));
+      const tabPres = U.el("table", { class: "m4s-tableau" }, U.el("thead", {}, trE), tbody);
+      habillerGrilleSemaine(tabPres, jours);
+      cadre.append(tabPres);
       carte.append(cadre);
       if (!liste.length) carte.append(U.el("p", { class: "m4s-placeholder" }, "Aucun résident dans ce groupe."));
       zone.append(carte);
     }
 
     // ---------------------------------------------------------------
-    // Impression A4 PAYSAGE — fenetre dediee (patron identique a
-    // imprimerPlanning). Couleurs figees en hexadecimal (independantes du
-    // theme). MEME regle de comptage que l'ecran (absent seulement si le
-    // statut est « sortie »). Imprime TOUS les groupes, un par section,
-    // avec saut de page ; en-tetes (lettrage + colonnes) et pied REPETES.
-    // Ne modifie NI l'affichage ecran NI les calculs.
+    // Impression A3 PORTRAIT — UNE SEULE PAGE — fenêtre dédiée (couleurs
+    // figées en hexadécimal, indépendantes du thème). Tous les groupes sont
+    // réunis dans UN tableau : l'en-tête des jours n'est écrit qu'une fois,
+    // chaque groupe est une section (bandeau + résidents + effectifs).
+    // MÊME règle de comptage que l'écran (absent seulement si le statut est
+    // « sortie ») ; lignes d'effectifs : Total résidents / encadrants /
+    // familles / TOTAL PRÉSENTS. Le programme MESURE le rendu et retient la
+    // plus grande taille de texte (11 pt → 5,5 pt) qui tient sur la page ;
+    // si c'est encore trop dense, il bascule sur plusieurs pages (en-tête
+    // répété) plutôt que de couper des lignes, et prévient l'utilisateur.
+    // Ne modifie NI l'affichage écran NI les calculs.
     // ---------------------------------------------------------------
     function imprimerTableauPresence() {
       if (!residents) { toast("Données en cours de chargement…", "erreur"); return; }
       const fenetre = window.open("", "_blank");
       if (!fenetre) { toast("Le navigateur a bloqué la fenêtre d'impression.", "erreur", 6000); return; }
 
-      const HEX_JOUR = ["#2563EB", "#0D9488", "#B45309", "#B91C1C", "#5B3AA8", "#BE185D", "#0E6B7A"];
+      const HEX_JOUR = ["#2563EB", "#0D9488", "#EA580C", "#DC2626", "#7C3AED", "#DB2777", "#0891B2"];   // = --jc-1…7
       const NCOL = 1 + jours.length * 2;
       const dd = new Date(), pz = n => String(n).padStart(2, "0");
       const edite = `${pz(dd.getDate())}/${pz(dd.getMonth() + 1)}/${dd.getFullYear()} à ${pz(dd.getHours())}:${pz(dd.getMinutes())}`;
+      const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
       const catOf = v => v ? (categorieDuStatut[v] || "autre") : null;
       const clsCat = cat => cat ? ("st-" + (["animation", "sortie", "invitation"].includes(cat) ? cat : "autre")) : "st-ok";
 
-      // Comptage STRICTEMENT identique a dessiner()
+      // Comptage STRICTEMENT identique à dessiner()
       function compteDe(liste) {
         const c = {};
         const inc = (j, s, cle, n = 1) => { const k = `${j}|${s}|${cle}`; c[k] = (c[k] || 0) + n; };
         liste.forEach(r => {
+          if (!estCompte(r)) return;                                    // gastrostomie : jamais comptée
           const service1 = Number(r.service_midi) === 1;
           const mixe = String(r.texture_code || "").toUpperCase().startsWith("M");
           jours.forEach(j => {
@@ -4390,7 +5310,7 @@
         return c;
       }
 
-      function tableGroupe(groupe) {
+      function sectionGroupe(groupe) {
         const gLib = (groupesAffiches.find(g => g.code === groupe) || {}).libelle || groupe;
         const liste = residents.filter(r => (r.groupe_code || "") === groupe)
           .sort((a, b) => String(a.nom_prenom || "").localeCompare(String(b.nom_prenom || ""), "fr"));
@@ -4400,101 +5320,135 @@
         const enc = (j, s) => indexEncadrants.get(`${groupe}|${j}|${s}`) || 0;
         const fam = (j, s) => { let n = 0; liste.forEach(r => n += indexFamilles.get(`${r.id}|${j}|${s}`) || 0); return n; };
 
-        let head = `<thead><tr><th class="lettrage" colspan="${NCOL}"><div class="lh">`
-          + `<div class="etab"><div class="logo">M4S</div><div><div class="nom">MAS « 4 Saisons »</div><div class="sous">Restauration · Service hôtelier</div></div></div>`
-          + `<div class="meta"><div class="ti">Tableau de présence</div><div class="pe">Semaine ${semaine.numero} · du ${U.dateFR(semaine.dateDebut)} au ${U.dateFR(semaine.dateFin)}</div><div class="gr">${gLib} · ${liste.length} résident(s)</div></div>`
-          + `</div></th></tr><tr><th class="cnomh" rowspan="2">Résident</th>`;
-        jours.forEach((j, i) => { head += `<th class="jour" colspan="2" style="border-bottom:2.5pt solid ${HEX_JOUR[i]};color:${HEX_JOUR[i]}">${j.nom.slice(0, 3)} ${U.dateFR(j.date).slice(0, 5)}</th>`; });
-        head += `</tr><tr>`;
-        jours.forEach(() => { head += `<th class="srv">Midi</th><th class="srv">Soir</th>`; });
-        head += `</tr></thead>`;
-
-        const foot = `<tfoot><tr><td class="pied" colspan="${NCOL}"><div class="pd"><span>Édité le <b>${edite}</b> · M4S</span><span>MAS 4 Saisons — Document interne</span></div></td></tr></tfoot>`;
-
-        let body = `<tbody>`;
-        liste.forEach(r => {
-          body += `<tr><td class="cnom">${r.nom_prenom || "—"}${r.type === "temporaire" ? ' <span class="at">AT</span>' : ""}</td>`;
-          jours.forEach(j => {
+        let body = `<tbody class="grp"><tr class="titre"><td colspan="${NCOL}">${esc(gLib)} <span>· ${liste.length} résident(s)</span></td></tr>`;
+        liste.forEach((r, i) => {
+          const rMixe = String(r.texture_code || "").toUpperCase().startsWith("M"), rS1 = Number(r.service_midi) === 1, rGas = !estCompte(r);
+          body += `<tr class="${[i % 2 ? "alt" : "", rMixe ? "mixe" : "", rS1 ? "s1" : "", rGas ? "gas" : ""].join(" ").trim()}"><td class="cnom">${esc(r.nom_prenom || "—")}${r.type === "temporaire" ? ' <span class="at">AT</span>' : ""}${rGas ? ' <span class="gastro">GASTRO</span>' : ""}</td>`;
+          jours.forEach((j, iJ) => {
             const jc = j.nom.toLowerCase();
             SERVICES.forEach((service, iS) => {
+              const deb = iS === 0 ? ` db" style="--c:${HEX_JOUR[iJ]}` : "";
               if (!serviceApplicable(r.groupe_code, service)) {   // [ADJ] case neutre
-                body += `<td class="cell st-na${iS === 0 ? " db" : ""}">—</td>`; return;
+                body += `<td class="cell st-na${deb}">—</td>`; return;
               }
               const v = indexResidents.get(`${r.id}|${jc}|${service}`) || "";
-              body += `<td class="cell ${clsCat(catOf(v))}${iS === 0 ? " db" : ""}">${v || "OK"}</td>`;
+              body += `<td class="cell ${clsCat(catOf(v))}${deb}">${esc(v || "OK")}</td>`;
             });
           });
           body += `</tr>`;
         });
         const ligne = (lib, fn, cls = "") => {
           let tr = `<tr class="syn ${cls}"><td class="lib">${lib}</td>`;
-          jours.forEach(j => { const jc = j.nom.toLowerCase(); SERVICES.forEach((service, iS) => { tr += `<td class="val${iS === 0 ? " db" : ""}">${serviceApplicable(groupe, service) ? fn(jc, service) : "—"}</td>`; }); });
+          jours.forEach((j, iJ) => { const jc = j.nom.toLowerCase(); SERVICES.forEach((service, iS) => {
+            tr += `<td class="val${iS === 0 ? ` db" style="--c:${HEX_JOUR[iJ]}` : ""}">${serviceApplicable(groupe, service) ? fn(jc, service) : "—"}</td>`; }); });
           return tr + `</tr>`;
         };
-        body += ligne("1<sup>er</sup> service — présents", (j, s) => get(j, s, "s1"), "sep");
-        body += ligne("dont repas mixé", (j, s) => get(j, s, "s1mixe"), "dont");
-        body += ligne("dont repas normal", (j, s) => get(j, s, "s1normal"), "dont");
-        body += ligne("2<sup>e</sup> service — présents", (j, s) => get(j, s, "s2"));
-        body += ligne("dont repas mixé", (j, s) => get(j, s, "s2mixe"), "dont");
-        body += ligne("dont repas normal", (j, s) => get(j, s, "s2normal"), "dont");
         body += ligne("Total résidents", (j, s) => get(j, s, "s1") + get(j, s, "s2"), "sep");
         body += ligne("Total encadrants", (j, s) => enc(j, s));
         body += ligne("Total familles", (j, s) => fam(j, s));
         body += ligne("TOTAL PRÉSENTS", (j, s) => get(j, s, "s1") + get(j, s, "s2") + enc(j, s) + fam(j, s), "total");
-        body += `</tbody>`;
-        return `<table class="doc">${head}${foot}${body}</table>`;
+        return body + `</tbody>`;
       }
 
-      const sections = groupesAffiches.map(g => tableGroupe(g.code)).filter(Boolean)
-        .map((t, i) => `<div class="sect"${i > 0 ? ' style="break-before:page"' : ""}>${t}</div>`).join("");
+      const sections = groupesAffiches.map(g => sectionGroupe(g.code)).filter(Boolean).join("");
       if (!sections) { toast("Aucun résident à imprimer.", "erreur"); fenetre.close(); return; }
 
+      let enTete = `<thead><tr><th class="cnomh" rowspan="2">Résident</th>`;
+      jours.forEach((j, i) => { enTete += `<th class="jour" colspan="2" style="--c:${HEX_JOUR[i]}">${esc(j.nom.slice(0, 3).toUpperCase())} <b>${U.dateFR(j.date).slice(0, 5)}</b></th>`; });
+      enTete += `</tr><tr>`;
+      jours.forEach((j, i) => { enTete += `<th class="srv" style="--c:${HEX_JOUR[i]}">MIDI</th><th class="srv" style="--c:${HEX_JOUR[i]}">SOIR</th>`; });
+      enTete += `</tr></thead>`;
+
+      const cols = `<colgroup><col style="width:46mm">${jours.map(() => `<col><col>`).join("")}</colgroup>`;
+
       const style = `
-        @page { size: A4 landscape; margin: 12mm; }
-        @page { @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: Arial, sans-serif; font-size: 8pt; color: #8A94A8; } }
+        @page { size: A3 portrait; margin: 8mm; }
         * { margin:0; padding:0; box-sizing:border-box; }
+        html, body { width:281mm; }
         body { font-family: Arial, sans-serif; color:#14203A; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-        table.doc { width:100%; border-collapse:collapse; font-size:8.4pt; }
-        .doc td, .doc th { border:.4pt solid #CBD3DF; white-space:nowrap; }
-        thead { display:table-header-group; } tfoot { display:table-footer-group; }
-        .lettrage { border:0 !important; padding:0 0 7mm; }
-        .lh { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; }
-        .etab { display:flex; align-items:center; gap:10px; }
-        .etab .logo { width:38px; height:38px; border-radius:8px; background:#1E3A8A; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; }
+        #feuille { position:relative; width:281mm; height:402mm; padding-bottom:5mm; overflow:hidden; display:flex; flex-direction:column; }
+        .entete { display:flex; justify-content:space-between; align-items:flex-end; padding-bottom:2.5mm; border-bottom:1.2pt solid #1E3A8A; flex:none; }
+        .etab { display:flex; align-items:center; gap:3mm; }
+        .logo { width:11mm; height:11mm; border-radius:2mm; background:#1E3A8A; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11pt; }
         .etab .nom { font-size:13pt; font-weight:800; } .etab .sous { font-size:8pt; color:#55617A; }
-        .meta { text-align:right; } .meta .ti { font-size:14pt; font-weight:800; }
-        .meta .pe { font-size:8.5pt; color:#55617A; margin-top:2px; }
-        .meta .gr { display:inline-block; margin-top:5px; font-size:8pt; font-weight:700; color:#1E3A8A; background:#EAF0FC; border:.5pt solid #C3D2F0; border-radius:20px; padding:2px 10px; }
-        .cnomh { text-align:left; padding:5px 8px; background:#F2F5FA; font-size:7.5pt; font-weight:800; color:#55617A; min-width:42mm; vertical-align:middle; }
-        .jour { padding:4px 3px; text-align:center; background:#F7F9FC; font-size:7.6pt; font-weight:800; }
-        .srv { padding:3px 2px; text-align:center; background:#F7F9FC; font-size:6.8pt; font-weight:700; color:#8A94A8; width:15mm; }
-        .doc tbody td { padding:2.5px 4px; height:6.5mm; }
-        .cnom { text-align:left; font-weight:600; padding-left:8px; }
-        .cnom .at { font-size:6pt; font-weight:800; background:#E6F5F7; color:#0C6C7A; border:.5pt solid #A7DCE3; border-radius:3px; padding:0 3px; margin-left:3px; }
-        .cell { text-align:center; font-weight:700; font-size:7.4pt; }
-        .st-ok { color:#8A94A8; font-weight:600; }
-        .st-animation { background:#FDF3E3; color:#B45309; }
-        .st-sortie { background:#FDECED; color:#C02434; }
-        .st-invitation { background:#E6F5F7; color:#0C6C7A; }
-        .st-autre { background:#F0ECFA; color:#5B3AA8; }
-        .st-na { background:#F1F3F6; color:#A3ADBD; }
-        .db { border-left:1.2pt solid #B4BECD !important; }
-        .syn td { background:#FBFCFE; font-size:7.8pt; }
-        .syn .lib { text-align:left; padding-left:8px; font-weight:600; color:#55617A; }
-        .syn .val { text-align:center; font-weight:700; }
-        .syn.dont td { background:#fff; }
-        .syn.dont .lib { font-weight:500; color:#8A94A8; padding-left:16px; font-size:7.4pt; }
-        .syn.sep td { border-top:.9pt solid #B4BECD; }
-        .syn.total td { background:#EAF0FC; font-size:8.6pt; }
-        .syn.total .lib { font-weight:800; color:#14203A; padding-left:8px; }
-        .syn.total .val { font-weight:800; color:#1E3A8A; }
-        .pied { border:0 !important; padding:5mm 0 0; }
-        .pd { display:flex; justify-content:space-between; font-size:7pt; color:#8A94A8; border-top:.4pt solid #CBD3DF; padding-top:2.5mm; }
-        .pd b { color:#55617A; }
+        .meta { text-align:right; } .ti { font-size:20pt; font-weight:800; line-height:1.05; }
+        .pe { font-size:10pt; color:#55617A; margin-top:1mm; font-weight:700; }
+        .legende { display:flex; flex-wrap:wrap; align-items:center; gap:2mm 5mm; padding:2mm 0 2.5mm; font-size:8pt; font-weight:700; flex:none; }
+        .legende i { display:inline-block; width:4mm; height:4mm; border-radius:.8mm; margin-right:1.5mm; vertical-align:-1mm; border:.4pt solid rgba(0,0,0,.18); }
+        .legende .ed { margin-left:auto; font-weight:400; color:#8A94A8; }
+        #zone { flex:1; min-height:0; overflow:hidden; font-size:9pt; }
+        table.doc { width:100%; border-collapse:collapse; table-layout:fixed; }
+        thead { display:table-header-group; } tr { break-inside:avoid; page-break-inside:avoid; }
+        .doc td, .doc th { border:.4pt solid #CBD3DF; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .cnomh { background:#1E3A8A; color:#fff; text-align:left; padding:0 .8em; font-size:.95em; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+        .jour { background:var(--c); color:#fff; text-align:center; padding:.35em 0; font-size:1em; font-weight:800; letter-spacing:.05em; border-color:#fff !important; }
+        .jour b { font-size:1.15em; margin-left:.25em; }
+        .srv { background:color-mix(in srgb, var(--c) 16%, #fff); color:var(--c); text-align:center; padding:.15em 0; font-size:.78em; font-weight:800; letter-spacing:.12em; }
+        tr.titre td { background:#E8EEFB; color:#1E3A8A; font-size:1.05em; font-weight:800; padding:.32em .8em; border-top:1.2pt solid #1E3A8A; letter-spacing:.02em; }
+        tr.titre td span { font-weight:600; color:#55617A; font-size:.9em; }
+        .doc tbody td { padding:0 .4em; line-height:1.2; vertical-align:middle; }
+        .doc tbody tr { height:1.95em; } .doc tbody tr.syn { height:1.85em; } .doc tbody tr.syn.total, .doc tbody tr.titre { height:2.05em; }
+        .cnom { text-align:left; font-weight:500; padding-left:.8em !important; font-size:1.1em; }
+        .cnom .at { display:inline-block; line-height:1.15; font-size:.72em; font-weight:800; background:#E6F5F7; color:#0C6C7A; border:.5pt solid #A7DCE3; border-radius:.3em; padding:0 .35em; margin-left:.3em; vertical-align:middle; }
+        tr.alt td { background:#F7F9FD; } tr.alt td.st-animation, tr.alt td.st-sortie, tr.alt td.st-invitation, tr.alt td.st-autre, tr.alt td.st-na { background:revert-layer; }
+        .cell { text-align:center; font-weight:500; font-size:1.04em; }
+        .st-ok { color:#8A97AB; font-weight:500; }
+        .st-animation, .st-sortie, .st-invitation, .st-autre { font-weight:700; }
+        .st-animation { background:#FFEDD5 !important; color:#C2410C; }
+        .st-sortie { background:#FEE2E2 !important; color:#B91C1C; }
+        .st-invitation { background:#CFFAFE !important; color:#0E7490; }
+        .st-autre { background:#EDE9FE !important; color:#6D28D9; }
+        .st-na { background:#F1F3F6 !important; color:#A3ADBD; }
+        .db { border-left:1.6pt solid var(--c) !important; }
+        /* Repères : ligne du résident « mixé » surlignée ; « 1er service » en gras */
+        tr.mixe td:not(.st-animation):not(.st-sortie):not(.st-invitation):not(.st-autre) { background:#A9C8F2 !important; }
+        tr.mixe td.st-ok { color:#2F6B4D; }
+        /* Gastrostomie : ligne ROUGE, prioritaire sur le bleu « mixé » (règle placée après) */
+        tr.gas td:not(.st-animation):not(.st-sortie):not(.st-invitation):not(.st-autre) { background:#FCA5A5 !important; }
+        tr.gas td.st-ok, tr.gas .cnom { color:#7F1D1D; }
+        .gastro { display:inline-block; line-height:1.15; font-size:.7em; font-weight:800; background:#B91C1C; color:#fff; border-radius:.3em; padding:0 .35em; margin-left:.3em; vertical-align:middle; }
+        tr.s1 td, tr.s1 td.st-ok, tr.s1 .cnom { font-weight:800; }
+        .syn td { background:#F2F5FB; font-size:1.05em; }
+        .syn .lib { text-align:left; padding-left:.8em !important; font-weight:700; color:#55617A; }
+        .syn .val { text-align:center; font-weight:800; }
+        .syn.sep td { border-top:.9pt solid #9AA6B8; }
+        .syn.total td { background:#1E3A8A; color:#fff; font-size:1.15em; border-color:#3B57A8; }
+        .syn.total .lib { color:#fff; font-weight:800; }
+        tbody.grp { break-inside:auto; }
       `;
-      fenetre.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Tableau de présence — S${semaine.numero} ${semaine.annee}</title><style>${style}</style></head><body>${sections}</body></html>`);
+
+      const legende = `<div class="legende"><span><i style="background:#FFEDD5"></i>Animation</span><span><i style="background:#FEE2E2"></i>Absent / sortie</span>`
+        + `<span><i style="background:#CFFAFE"></i>Invitation</span><span><i style="background:#EDE9FE"></i>Autre statut</span><span>OK = présent au repas</span>`
+        + `<span><i style="background:#A9C8F2"></i>Ligne surlignée = repas mixé</span><span><i style="background:#FCA5A5"></i>Ligne rouge = gastrostomie (non comptée)</span><span style="font-weight:800">Gras = 1er service</span>`
+        + `<span class="ed">Édité le ${edite} · M4S</span></div>`;
+
+      fenetre.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Tableau de présence — S${semaine.numero} ${semaine.annee}</title><style>${style}</style></head><body>`
+        + `<div id="feuille"><div class="entete"><div class="etab"><div class="logo">M4S</div><div><div class="nom">MAS « 4 Saisons »</div><div class="sous">Restauration · Service hôtelier</div></div></div>`
+        + `<div class="meta"><div class="ti">Tableau de présence</div><div class="pe">Semaine ${semaine.numero} · du ${U.dateFR(semaine.dateDebut)} au ${U.dateFR(semaine.dateFin)}</div></div></div>`
+        + legende
+        + `<div id="zone"><table class="doc">${cols}${enTete}${sections}</table></div></div></body></html>`);
       fenetre.document.close();
-      setTimeout(() => fenetre.print(), 400);
+
+      // Ajustement à UNE page : plus grande taille de texte qui ne déborde pas ;
+      // sinon repli sur plusieurs pages (en-tête répété) avec avertissement.
+      setTimeout(() => {
+        try {
+          const doc = fenetre.document;
+          const feuille = doc.getElementById("feuille"), zone = doc.getElementById("zone");
+          const tient = () => zone.scrollHeight <= zone.clientHeight + 1;
+          let choisi = null;
+          for (let fs = 11; fs >= 5.5; fs -= 0.25) {
+            zone.style.fontSize = fs + "pt";
+            if (tient()) { choisi = fs; break; }
+          }
+          if (choisi === null) {
+            feuille.style.height = "auto"; feuille.style.overflow = "visible";
+            zone.style.overflow = "visible"; zone.style.flex = "none"; zone.style.fontSize = "5.5pt";
+            toast("Trop de résidents pour une seule page A3 : impression sur plusieurs pages.", "erreur", 7000);
+          }
+        } catch (e) { /* fenêtre fermée pendant l'ajustement : rien à faire */ }
+        setTimeout(() => { try { fenetre.print(); } catch (e) {} }, 300);
+      }, 250);
     }
 
     dessiner();
@@ -4531,15 +5485,52 @@
       table:      '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16"/>',
       printer:    '<path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/>',
       eclair:     '<path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>',
+      panier:     '<path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L4 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/>',
+      gateau:     '<path d="M20 21v-8a2 2 0 00-2-2H6a2 2 0 00-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3M12 8v3M17 8v3"/><path d="M7 4h.01M12 4h.01M17 4h.01"/>',
     };
+    // Anniversaires : nombre de jours annoncés à l'avance (réglable ici)
+    const JOURS_ANNIVERSAIRES = 14;
+    const MOIS_COURT = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 
-    // En-tete de page (meme style que les autres modules)
-    conteneur.append(U.el("div", { class: "m4s-page-titre" },
-      U.el("div", {},
+    // Date du jour (systeme reel, aucune donnee inventee)
+    const JOURS_FR = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+    const MOIS_FR = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+    const dateSysteme = new Date();
+    const libelleAuj = JOURS_FR[dateSysteme.getDay()] + " " + dateSysteme.getDate() + " " + MOIS_FR[dateSysteme.getMonth()] + " " + dateSysteme.getFullYear();
+
+    // Bandeau d'accueil (mêmes données que l'ancien en-tête : titre + semaine
+    // active réelle ; ajout de la date du jour, sans nom d'utilisateur codé
+    // en dur — l'application ne stocke pas de prénom).
+    const deco = U.el("div", { class: "m4s-tdb-bandeau__deco" });
+    const svgDeco = icone(IC.cuisine, 40); svgDeco.setAttribute("aria-hidden", "true"); deco.append(svgDeco);
+    conteneur.append(U.el("div", { class: "m4s-tdb-bandeau" },
+      U.el("div", { class: "m4s-tdb-bandeau__texte" },
         U.el("h1", {}, "Tableau de bord"),
-        U.el("div", { class: "m4s-sous" },
-          semaine ? "S" + semaine.numero + " — " + semaine.annee + " · du " + U.dateFR(semaine.dateDebut) + " au " + U.dateFR(semaine.dateFin) : "")),
+        U.el("div", { class: "m4s-tdb-bandeau__jour" }, "Aujourd'hui " + libelleAuj),
+        U.el("div", { class: "m4s-tdb-bandeau__sem" },
+          semaine ? "Semaine active : S" + semaine.numero + " — " + semaine.annee + " · du " + U.dateFR(semaine.dateDebut) + " au " + U.dateFR(semaine.dateFin) : "Aucune semaine sélectionnée")),
+      deco,
     ));
+
+    // Raccourcis métier — un lien par module réellement présent au menu
+    // (voir 00_Architecture.md §4.2 MODULES). Aucun module DIHAS absent de
+    // M4S (achats fournisseurs, réceptions/livraisons, contrôles PMS) n'est
+    // représenté ici.
+    const RACCOURCIS_ACCUEIL = [
+      { cle: "cmd-residents",      cls: "vert",   ic: IC.residents,  lib: "Effectifs & repas" },
+      { cle: "cmd-encadrants",     cls: "rouge",  ic: IC.encadrants, lib: "Commandes repas" },
+      { cle: "dotations",         cls: "bleu",   ic: IC.panier,     lib: "Dotations" },
+      { cle: "production-cuisine", cls: "violet", ic: IC.cuisine,    lib: "Production cuisine" },
+      { cle: "anim-semaine",      cls: "ambre",  ic: IC.anim,       lib: "Animations" },
+      { cle: "tableau-presence",  cls: "slate",  ic: IC.table,      lib: "Rapports" },
+    ];
+    const bandeauRacc = U.el("div", { class: "m4s-tdb-racc" });
+    RACCOURCIS_ACCUEIL.forEach(r => {
+      const bt = U.el("button", { class: "m4s-tdb-racc-item m4s-tdb-racc--" + r.cls, type: "button", onclick: () => ROUTAGE.aller(r.cle) });
+      bt.append(icone(r.ic, 26), U.el("span", {}, r.lib), U.el("span", { class: "m4s-tdb-racc-fleche", "aria-hidden": "true" }, "›"));
+      bandeauRacc.append(bt);
+    });
+    conteneur.append(bandeauRacc);
 
     const zone = U.el("div", { class: "m4s-tdb" });
     conteneur.append(zone);
@@ -4583,6 +5574,7 @@
 
     // Present a ce repas si le statut n'est PAS de categorie « sortie »
     function present(r, service) {
+      if (!estCompte(r)) return false;                                // gastrostomie : jamais comptée
       if (!serviceApplicable(r.groupe_code, service)) return false;   // [ADJ] pas de soir
       const val = idxRes.get(r.id + "|" + jcle + "|" + service) || "";
       const cat = val ? (categorieDuStatut[val] || "autre") : null;
@@ -4614,13 +5606,31 @@
       detail: "Renseignez-les dans « Animations de la semaine » pour filtrer les statuts.",
       cle: "anim-semaine" });
 
+    // ---- Anniversaires (données des fiches résidents déjà chargées) ----
+    const anniv = prochainsAnniversaires(residents, JOURS_ANNIVERSAIRES);
+    const libGroupe = code => (groupes.find(g => g.code === code) || {}).libelle || code || "";
+
     // ---- Rendu ----
     zone.innerHTML = "";
-    const carte = (titreTxte, iconeD, compteTxte) => {
+
+    // Notification : bannière visible dès l'ouverture quand il y a un anniversaire AUJOURD'HUI
+    const aujourdhuiAnniv = anniv.liste.filter(a => a.dans === 0);
+    if (aujourdhuiAnniv.length) {
+      const ic = U.el("div", { class: "m4s-tdb-anniv-banniere__ic" }); ic.append(icone(IC.gateau, 22));
+      const tx = U.el("div", { class: "m4s-tdb-anniv-banniere__tx" },
+        U.el("strong", {}, aujourdhuiAnniv.length > 1 ? "Anniversaires aujourd'hui" : "Anniversaire aujourd'hui"), " : ");
+      aujourdhuiAnniv.forEach((a, i) => {
+        if (i) tx.append(" · ");
+        tx.append(U.el("b", {}, a.resident.nom_prenom || "—"), ` fête ses ${a.age} ans`);
+        const g = libGroupe(a.resident.groupe_code); if (g) tx.append(` (${g})`);
+      });
+      zone.append(U.el("div", { class: "m4s-tdb-anniv-banniere", role: "status" }, ic, tx));
+    }
+    const carte = (titreTxte, iconeD, compteTxte, estCompteur) => {
       const tete = U.el("div", { class: "m4s-tdb-carte__tete" });
       const svg = icone(iconeD, 17); svg.classList.add("m4s-tdb-svg"); tete.append(svg);
       tete.append(U.el("h2", {}, titreTxte));
-      if (compteTxte) tete.append(U.el("span", { class: "m4s-tdb-compte" }, compteTxte));
+      if (compteTxte) tete.append(U.el("span", { class: "m4s-tdb-compte" + (estCompteur ? " m4s-tdb-compte--alerte" : "") }, compteTxte));
       return U.el("div", { class: "m4s-tdb-carte" }, tete);
     };
 
@@ -4672,7 +5682,7 @@
 
     // ===== Ligne 2 : a traiter + la journee =====
     const l2 = U.el("div", { class: "m4s-tdb-grille m4s-tdb-grille--2" });
-    const cAttn = carte("A traiter", IC.alerte, items.length ? items.length + " element(s)" : "");
+    const cAttn = carte("A traiter", IC.alerte, items.length ? items.length + " element(s)" : "", items.length > 0);
     if (!items.length) cAttn.append(U.el("div", { class: "m4s-tdb-vide" }, "Rien a signaler pour cette semaine."));
     else items.forEach(it => {
       const bt = U.el("button", { class: "m4s-tdb-attn", type: "button", onclick: () => ROUTAGE.aller(it.cle) });
@@ -4699,8 +5709,9 @@
     l2.append(cJour);
     zone.append(l2);
 
-    // ===== Ligne 3 : effectifs par groupe + raccourcis =====
-    const l3 = U.el("div", { class: "m4s-tdb-grille m4s-tdb-grille--2" });
+    // ===== Ligne 3 : effectifs par groupe (pleine largeur) =====
+    // La carte « Actions frequentes » a ete retiree (demande de Nico,
+    // devenue redondante avec les raccourcis du bandeau d'accueil).
     const cGrp = carte("Effectifs par groupe", IC.table, estAujourdHui ? "aujourd'hui" : jourActif.nom.toLowerCase());
     cGrp.append(U.el("div", { class: "m4s-tdb-grp m4s-tdb-grp--tete" },
       U.el("span", { class: "m4s-tdb-grp__nom" }, "Groupe"),
@@ -4720,21 +5731,32 @@
       U.el("span", { class: "m4s-tdb-grp__nom" }, "Total residents"),
       U.el("span", { class: "m4s-tdb-grp__v" }, String(totM)),
       U.el("span", { class: "m4s-tdb-grp__v" }, String(totS))));
-    l3.append(cGrp);
+    // Carte « Anniversaires » (à droite des effectifs)
+    const cAnniv = carte("Anniversaires", IC.gateau, anniv.liste.length ? String(anniv.liste.length) : "", false);
+    if (!anniv.avecDate) {
+      // Donnée absente : on le dit, on ne prétend pas « aucun anniversaire »
+      cAnniv.append(U.el("div", { class: "m4s-tdb-vide" }, "Aucune date de naissance renseignée dans les fiches résidents."));
+    } else if (!anniv.liste.length) {
+      cAnniv.append(U.el("div", { class: "m4s-tdb-vide" }, `Aucun anniversaire dans les ${JOURS_ANNIVERSAIRES} prochains jours.`));
+    } else {
+      anniv.liste.slice(0, 12).forEach(a => {
+        const quand = a.dans === 0 ? "Aujourd'hui" : a.dans === 1 ? "Demain" : `dans ${a.dans} j`;
+        const g = libGroupe(a.resident.groupe_code);
+        cAnniv.append(U.el("div", { class: "m4s-tdb-anniv" + (a.dans === 0 ? " m4s-tdb-anniv--auj" : "") },
+          U.el("div", { class: "m4s-tdb-anniv__date" }, U.el("b", {}, String(a.jour)), U.el("span", {}, MOIS_COURT[a.mois])),
+          U.el("div", { class: "m4s-tdb-anniv__tx" },
+            U.el("b", {}, a.resident.nom_prenom || "—"),
+            U.el("span", {}, `${a.age} ans` + (g ? " · " + g : ""))),
+          U.el("span", { class: "m4s-tdb-anniv__quand" }, quand)));
+      });
+      if (anniv.liste.length > 12) cAnniv.append(U.el("div", { class: "m4s-tdb-anniv-note" }, `+ ${anniv.liste.length - 12} autre(s) dans les ${JOURS_ANNIVERSAIRES} prochains jours.`));
+    }
+    if (anniv.avecDate && anniv.sansDate) {
+      cAnniv.append(U.el("div", { class: "m4s-tdb-anniv-note" }, `${anniv.sansDate} fiche(s) sans date de naissance.`));
+    }
 
-    const cRac = carte("Actions frequentes", IC.eclair, "");
-    const racs = U.el("div", { class: "m4s-tdb-racs" });
-    const rac = (iconeD, lib, cle) => {
-      const b = U.el("button", { class: "m4s-tdb-rac", type: "button", onclick: () => ROUTAGE.aller(cle) });
-      b.append(icone(iconeD, 18), U.el("span", {}, lib));
-      return b;
-    };
-    racs.append(rac(IC.residents, "Commande residents", "cmd-residents"));
-    racs.append(rac(IC.encadrants, "Commande encadrants", "cmd-encadrants"));
-    racs.append(rac(IC.cuisine, "Production cuisine", "production-cuisine"));
-    racs.append(rac(IC.printer, "Tableau de presence", "tableau-presence"));
-    cRac.append(racs);
-    l3.append(cRac);
+    const l3 = U.el("div", { class: "m4s-tdb-grille m4s-tdb-grille--2" });
+    l3.append(cGrp, cAnniv);
     zone.append(l3);
   }
 
@@ -4924,7 +5946,9 @@
         tbody.append(tr);
       });
 
-      cadre.append(U.el("table", { class: "m4s-tableau" }, U.el("thead", {}, trEntete), tbody));
+      const tabRes = U.el("table", { class: "m4s-tableau" }, U.el("thead", {}, trEntete), tbody);
+      habillerGrilleSemaine(tabRes, jours);
+      cadre.append(tabRes);
       carte.append(cadre);
       if (!liste.length) carte.append(U.el("p", { class: "m4s-placeholder" }, "Aucun résident ne correspond."));
       zone.append(carte);
@@ -5015,6 +6039,7 @@
     "cmd-residents":   '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/>',
     "cmd-encadrants":  '<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     "cmd-familles":    '<path d="M3 21h18M4 21V10l8-6 8 6v11M9 21v-5h6v5"/>',
+    "cmd-cuisine-bureau": '<path d="M17 21a1 1 0 001-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 00-2.134-7.589 5 5 0 00-9.186 0 4 4 0 00-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 001 1z"/><path d="M6 17h12"/>',
     "dotations":       '<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
     "tableau-presence":'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16"/>',
     "repas-animation": '<path d="M8 3v3M16 3v3M4 8h16M6 6h12a2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2z"/>',
